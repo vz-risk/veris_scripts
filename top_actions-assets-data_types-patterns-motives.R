@@ -11,7 +11,7 @@ suppressPackageStartupMessages(library(knitr))
 suppressPackageStartupMessages(library(verisr))
 suppressPackageStartupMessages(library(pbapply))
 suppressPackageStartupMessages(library(rjson))
-source('/Volumes/verizon/Customer and Partner Data/DBIR/dbir2015-support.R')
+source('./dbir2015-support.R')
 opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE,
                results="markdown", prompt=FALSE, error=FALSE,
                fig.width=8, fig.height=5, cache=FALSE)
@@ -25,7 +25,7 @@ theme_set(theme_minimal() +
 
 
 # Import data
-savefile <- "/Volumes/verizon/Customer and Partner Data/DBIR/dbir20150224-full.rda"
+savefile <- "./data-full.rda"
 load(savefile)
 
 # Filter data

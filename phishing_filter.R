@@ -1,0 +1,1 @@
+vz <- vz %>% filter(action.social.variety.Phishing == T) %>% select(-action.social.variety.Phishing) %>% select(-`attribute.integrity.variety.Alter behavior`) %>% filter(attribute.availability.variety.Obscuration==T)
