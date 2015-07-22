@@ -24,5 +24,5 @@ tmp$action <- "Environmental"
 action <- bind_rows(action, tmp)
 action <- action %>% arrange(desc(x)) %>% select(-freq, -n)
 action$n <- dim(vz)[1]
-action$freq <- action$x/action$n
+action$freq <- round(100 * action$x/action$n, 2)
 action[1:20,]
