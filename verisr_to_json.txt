@@ -1,0 +1,66 @@
+# R
+DESCRIPTION <- "Parse incidents from data set in R and then retrieve the associated json files using python."
+
+names <- "./incident_id.txt"
+
+## Filter some list of incidents.  In this case healthcare not in VCDB where data disclosure was yes or potentially
+vz_healthcare <- vz %>% filter(victim.industry2.62 | attribute.confidentiality.data.variety.Medical | grepl('Patient', attribute.confidentiality.data_victim)) %>% filter(attribute.confidentiality.data_disclosure.Potentially | attribute.confidentiality.data_disclosure.Yes) %>% filter(source_id != "vcdb")
+write(vz_healthcare$incident_id, names)
+
+
+# Python
+
+import fnmatch
+import os
+import shutil
+import json
+
+outdir = "./healthcare_incidents/"
+indir1 = "./gitlab_repo/data/json"  # 2015 data set
+indir2 = "./data/1.3"  # older data set
+indir3 = "./vcdb"
+names = "./incident_id.txt"
+
+ids = set()
+    with open(names, 'r') as f:
+        for line in f:
+            ids.add(line.strip()
+
+for root, dirnames, filenames in os.walk(indir1):
+    for filename in fnmatch.filter(filenames, '*.json'):
+        if True:
+            with open(root + "/" + filename) as j:
+                incident = json.load(j)
+                if incident['plus']['incident_id'] in ids:
+                    shutil.copy(root + "/" + filename, outdir)
+                    ids.remove(incident['plus']['incident_id'])
+        if len(ids) == 0:
+            break
+    if len(ids) == 0:
+        break
+
+for root, dirnames, filenames in os.walk(indir2):
+    for filename in fnmatch.filter(filenames, '*.json'):
+        if True:
+            with open(root + "/" + filename) as j:
+                incident = json.load(j)
+                if incident['plus']['incident_id'] in ids:
+                    shutil.copy(root + "/" + filename, outdir)
+                    ids.remove(incident['plus']['incident_id'])
+        if len(ids) == 0:
+            break
+    if len(ids) == 0:
+        break
+
+for root, dirnames, filenames in os.walk(indir3):
+    for filename in fnmatch.filter(filenames, '*.json'):
+        if True:
+            with open(root + "/" + filename) as j:
+                incident = json.load(j)
+                if incident['plus']['incident_id'] in ids:
+                    shutil.copy(root + "/" + filename, outdir)
+                    ids.remove(incident['plus']['incident_id'])
+        if len(ids) == 0:
+            break
+    if len(ids) == 0:
+        break
