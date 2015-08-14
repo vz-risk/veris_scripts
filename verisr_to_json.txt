@@ -22,45 +22,30 @@ indir3 = "./vcdb"
 names = "./incident_id.txt"
 
 ids = set()
-    with open(names, 'r') as f:
-        for line in f:
-            ids.add(line.strip()
+with open(names, 'r') as f:
+    for line in f:
+        ids.add(line.strip())
 
 for root, dirnames, filenames in os.walk(indir1):
     for filename in fnmatch.filter(filenames, '*.json'):
         if True:
             with open(root + "/" + filename) as j:
                 incident = json.load(j)
-                if incident['plus']['incident_id'] in ids:
+                if incident['incident_id'] in ids:
                     shutil.copy(root + "/" + filename, outdir)
-                    ids.remove(incident['plus']['incident_id'])
-        if len(ids) == 0:
-            break
-    if len(ids) == 0:
-        break
 
 for root, dirnames, filenames in os.walk(indir2):
     for filename in fnmatch.filter(filenames, '*.json'):
         if True:
             with open(root + "/" + filename) as j:
                 incident = json.load(j)
-                if incident['plus']['incident_id'] in ids:
+                if incident['incident_id'] in ids:
                     shutil.copy(root + "/" + filename, outdir)
-                    ids.remove(incident['plus']['incident_id'])
-        if len(ids) == 0:
-            break
-    if len(ids) == 0:
-        break
 
 for root, dirnames, filenames in os.walk(indir3):
     for filename in fnmatch.filter(filenames, '*.json'):
         if True:
             with open(root + "/" + filename) as j:
                 incident = json.load(j)
-                if incident['plus']['incident_id'] in ids:
+                if incident['incident_id'] in ids:
                     shutil.copy(root + "/" + filename, outdir)
-                    ids.remove(incident['plus']['incident_id'])
-        if len(ids) == 0:
-            break
-    if len(ids) == 0:
-        break
