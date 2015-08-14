@@ -28,7 +28,7 @@ with open(names, 'r') as f:
 
 for root, dirnames, filenames in os.walk(indir1):
     for filename in fnmatch.filter(filenames, '*.json'):
-        if True:
+        if "vcdb" not in root:
             with open(root + "/" + filename) as j:
                 incident = json.load(j)
                 if incident['incident_id'] in ids:
@@ -36,7 +36,7 @@ for root, dirnames, filenames in os.walk(indir1):
 
 for root, dirnames, filenames in os.walk(indir2):
     for filename in fnmatch.filter(filenames, '*.json'):
-        if True:
+        if "vcdb" not in root:
             with open(root + "/" + filename) as j:
                 incident = json.load(j)
                 if incident['incident_id'] in ids:
