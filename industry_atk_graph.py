@@ -27,9 +27,11 @@ DBIRAG.g = nx.read_gexf(GRAPH_FILE)
 DBIRAG.g = DBIRAG.normalize_weights(DBIRAG.g)
 
 # Print top 10 attack paths
+paths = analysis.helper.shortest_attack_paths(DBIRAG.g, src=None, dst=None)
 sorted_paths = list()
 for path in paths.keys():
-    sorted_paths.append((path, paths[path], analysis.helper.path_length(DBIRAG.g, paths[path])[1]))
+    if len(paths[path]) > 0:
+        sorted_paths.append((path, paths[path], analysis.helper.path_length(DBIRAG.g, paths[path])[1]))
 sorted_paths.sort(key=lambda tup: tup[2], reverse=False)
 for path in [x[1] for x in sorted_paths[:10]]:
     p = path[0]
@@ -101,6 +103,7 @@ plt.plot(x, shortest_paths, 'bo', x, shortest_paths, 'k')
 plt.title("Relative Shortest Path Length Increase From Mitigation")
 plt.xlabel("Mitigation Number")
 plt.ylabel("Relative Path Length")
+plt.ylim(ymin = 0)
 # The labels below may or may not be correct, but you get the idea
 for i in range(4):  # if more mitigations make significant changes, increase 4 to 5 or 6
     plt.text(x[i+1] + .2, shortest_paths[i+1]-.02, mitigations[i])
