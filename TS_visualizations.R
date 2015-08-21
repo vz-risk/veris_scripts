@@ -31,7 +31,7 @@ suppressPackageStartupMessages(library(binom))
 suppressPackageStartupMessages(library(knitr))
 suppressPackageStartupMessages(library(verisr))
 suppressPackageStartupMessages(library(lazyeval))
-source('/Volumes/verizon/Customer and Partner Data/DBIR/dbir2015-support.R')
+source('./dbir2015-support.R')    # Similar to https://github.com/jayjacobs/verisr/blob/verisr-addons/R/addons.R
 opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE,
                results="markdown", prompt=FALSE, error=FALSE,
                fig.width=8, fig.height=5, cache=FALSE)
@@ -45,7 +45,7 @@ theme_set(theme_minimal() +
 
 
 # Get VCDB Data
-load("/Users/v685573/Documents/Development/VCDB/data/verisr/vcdb.dat")
+load("./VCDB/data/verisr/vcdb.dat")  # From https://github.com/vz-risk/VCDB
 
 # Load functions to create time series data
 #. Takes a list of strings and a pattern and returns how many times that pattern exists in the string
