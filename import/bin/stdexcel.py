@@ -852,7 +852,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     args = {k:v for k,v in vars(args).iteritems() if v is not None}
 
-    logging_remap = {'warning':logging.WARNING, 'critical':logging.CRITICAL, 'info':logging.INFO}
+    logging_remap = {'warning':logging.WARNING, 'critical':logging.CRITICAL, 'info':logging.INFO, 'debug':logging.DEBUG}
 
     # Parse the config file
     try:
@@ -870,8 +870,8 @@ if __name__ == '__main__':
                         cfg[value] = config.get(section, value)
         cfg["year"] = int(cfg["year"])
         cfg["vcdb"] = {True:True, False:False, "false":False, "true":True}[cfg["vcdb"].lower()]
-        logging.info("config import succeeded.")
     except Exception as e:
+        logging.debug("config import succeeded.")
         logging.warning("config import failed.")
         #raise e
         pass
@@ -882,8 +882,8 @@ if __name__ == '__main__':
     if 'quiet' in args and args['quiet'] == True:
         _ = cfg.pop('output')
 
-    logging.info(args)
-    logging.warning(cfg)
+    logging.debug(args)
+    logging.debug(cfg)
 
     logging.basicConfig(level=logging_remap[cfg["log_level"]],
           format='%(asctime)19s %(levelname)8s %(message)s', datefmt='%m/%d/%Y %H:%M:%S')
