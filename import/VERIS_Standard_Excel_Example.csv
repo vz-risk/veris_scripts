@@ -1,0 +1,22 @@
+repeat,incident_id,victim.industry,victim.country,victim.region,actor.external.country,actor.external.region,actor.external.variety,actor.external.motive,actor.internal.variety,actor.internal.motive,actor.partner.industry,actor.partner.country,action.malware.variety,action.malware.vector,action.hacking.variety,action.hacking.vector,asset.assets.variety,attribute.confidentiality.data_disclosure,attribute.confidentiality.data.variety,attribute.availability.variety,targeted
+,248,,Unknown,,,,,,,NA,,,,Direct install,Use of backdoor or C2,Command shell,Unknown,Yes,"Payment:100, Credentials",,Targeted
+,247,,US,,,Eastern Europe,,,Unknown,,,,,Direct install,Use of backdoor or C2,Command shell,U - Other,Potentially,Payment,,Targeted
+,246,,US,,,Eastern Europe,,,Unknown,,,,,Direct install,Use of backdoor or C2,Command shell,U - Other,Potentially,Payment,,Targeted
+,243,,US,,,Eastern Europe,,,Unknown,,,,,Direct install,Use of backdoor or C2,Command shell,U - Other,Potentially,Payment,,Targeted
+,241,,US,,,Eastern Europe,,,Unknown,,,,,Direct install,Use of backdoor or C2,Command shell,U - Other,Potentially,Payment,,Targeted
+,,,US,,,Eastern Europe,,,Unknown,,,,,Direct install,Use of backdoor or C2,Command shell,U - Other,Potentially,,,Targeted
+,235,,,Asia,,Eastern Europe,State-affiliated,Espionage,,,,,Password dumper; Spyware/Keylogger,Direct install,Use of backdoor or C2,Command shell,U - Other,Potentially,Secrets,,Targeted
+,244,,US,,,Eastern Europe,,,Unknown,,,,,Direct install,Use of backdoor or C2,,,Yes,Secrets,,Unknown
+,245,,US,,,Eastern Europe,,,Unknown,,,,,Direct install,"Buffer overflow, XSS",,,Yes,Secrets,,Unknown
+,242,,US,,,Eastern Europe,,,Unknown,,,,Ram scraper,Direct install,Use of stolen creds,,,Yes,Secrets,,Unknown
+,229,,US,,CM,,,,Unknown,,722320,TT,Ram scraper,Direct install,Use of stolen creds,,"S - POS controller:1, N - RTU:1000",Yes,Payment:340001,,Unknown
+,239,,US,,,,,,Unknown,,,,,Direct install,Use of stolen creds,,,Yes,,,Opportunistic
+,238,,US,,,,,,Unknown,,,,,,Use of stolen creds,,,Yes,,,Opportunistic
+,237,,,Africa,,Middle Africa,,Financial,Unknown,,,,Spyware/Keylogger,Software update,Use of stolen creds,3rd party desktop,,Yes,,,Opportunistic
+,236,,GB,,,,,,Unknown,,,,Spyware/Keylogger,Software update,Fuzz testing,3rd party desktop,,Yes,,,Targeted
+,234,,HK,,,,,,Unknown,,,,Spyware/Keylogger,Software update,Fuzz testing,3rd party desktop,,Yes,,,Opportunistic
+,233,,HK,,,,,,Unknown,,,,Spyware/Keylogger,Software update,Fuzz testing,3rd party desktop,,Yes,,,Opportunistic
+,232,,HK,,,,,,Unknown,,,,Spyware/Keylogger,Software update,Fuzz testing,3rd party desktop,,Yes,,,Opportunistic
+,231,,DE,,,,,,Unknown,,,,,,,,,Yes,,,Opportunistic
+23,227,722511,,Polynesia,,Northern America,,Financial,Unknown,,,,,,,,,Yes,,,
+5,344,92,US,,CH,,Nation-state,Espionage,Executive,Financial,,,Password dumper,Removable media,Use of stolen creds,Command shell,"S - File:5, U - Laptop:15",Yes,"Secrets, Credentials",,Targeted
