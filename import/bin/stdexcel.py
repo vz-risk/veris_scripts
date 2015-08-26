@@ -850,6 +850,7 @@ if __name__ == '__main__':
     output_group.add_argument("-o", "--output", help="directory where json files will be written")
     output_group.add_argument("-q", "--quiet", help="suppress the writing of json files.", action='store_true')
     args = parser.parse_args()
+    args = {k:v for k,v in vars(args).iteritems() if v is not None}
 
     logging_remap = {'warning':logging.WARNING, 'critical':logging.CRITICAL, 'info':logging.INFO}
 
@@ -875,7 +876,8 @@ if __name__ == '__main__':
     logging.warning(cfg)
 
     #cfg.update({k:v for k,v in vars(args).iteritems() if k not in cfg.keys()})  # copy command line arguments to the 
-    cfg.update(vars(args))  # overwrite configuration file variables with 
+    #cfg.update(vars(args))  # overwrite configuration file variables with 
+    cfg.update(args)
     if args.quiet == True:
         _ = cfg.pop('output')
 
