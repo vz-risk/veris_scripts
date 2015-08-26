@@ -870,10 +870,10 @@ if __name__ == '__main__':
                         cfg[value] = config.get(section, value)
         cfg["year"] = int(cfg["year"])
         cfg["vcdb"] = {True:True, False:False, "false":False, "true":True}[cfg["vcdb"].lower()]
+        logging.info("config import succeeded.")
     except:
+        logging.warning("config import failed.")
         pass
-
-    logging.warning(cfg)
 
     #cfg.update({k:v for k,v in vars(args).iteritems() if k not in cfg.keys()})  # copy command line arguments to the 
     #cfg.update(vars(args))  # overwrite configuration file variables with 
@@ -881,8 +881,8 @@ if __name__ == '__main__':
     if 'quiet' in args and args['quiet'] == True:
         _ = cfg.pop('output')
 
-    logging.warning(args)
-    logging.warning(cfg)
+    logging.info(args)
+    logging.info(cfg)
 
     logging.basicConfig(level=logging_remap[cfg["log_level"]],
           format='%(asctime)19s %(levelname)8s %(message)s', datefmt='%m/%d/%Y %H:%M:%S')
