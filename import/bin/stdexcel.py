@@ -1,4 +1,17 @@
 #!/usr/bin/python
+
+# Default Configuration Settings
+cfg = {
+    'log_level': 'warning',
+    'log_file': None,
+    'schemafile': "../vcdb/veris.json",
+    'enumfile': "../vcdb/veris-enum.json",
+    'vcdb':False,
+    'version':"1.3",
+    'countryfile':'all.json'
+}
+
+
 import json
 import csv
 import sys
@@ -9,6 +22,7 @@ import copy
 import logging
 import re
 from datetime import datetime
+import ConfigParser
 
 def reqSchema(v, base="", mykeylist={}):
     "given schema in v, returns a list of keys and it's type"
@@ -360,12 +374,12 @@ def checkEnum(incident, schema, country_region, vcdb = False):
                     astring = 'attribute.' + attribute + '.duration.unit'
                     compareFromTo(astring, incident['attribute'][attribute]['duration']['unit'], schema['timeline']['unit'])
 
-    if 'timeline' not in incident: # TODO: FIX THIS CRAPPY HARD-CODED YEAR BS
-        logging.info("%s: timeline section missing, auto-fillng in 2014", iid)
-        incident['timeline'] = { 'incident' : { 'year' : 2014 } }
+    if 'timeline' not in incident: 
+        logging.info("{0}: timeline section missing, auto-fillng in {1}".format(iid, cfg.year-1))
+        incident['timeline'] = { 'incident' : { 'year' : cfg.year-1 } }
     if 'incident' not in incident['timeline']:
-        logging.info("%s: timeline.incident section missing, auto-fillng in 2014", iid)
-        incident['timeline']['incident'] = { 'year' : 2014 }
+        logging.info("{0}: timeline.incident section missing, auto-fillng in {1}".format(iid, cfg.year-1))
+        incident['timeline']['incident'] = { 'year' : cfg.year-1 }
         # assume that the schema validator will verify number
     for timeline in ['compromise', 'exfiltration', 'discovery', 'containment']:
         astring = 'timeline.' + timeline + '.unit'
@@ -405,8 +419,8 @@ def checkEnum(incident, schema, country_region, vcdb = False):
             astring = 'plus.' + method
             compareFromTo(astring, incident['plus'][method], schema['plus'][method])
     if 'dbir_year' not in incident['plus'] and vcdb != True:
-        logging.warning("%s: missing plus.dbir_year, auto-filled 2015", iid)
-        incident['plus']['dbir_year'] = 2015
+        logging.warning("{0}: missing plus.dbir_year, auto-filled {1}".format(iid, cfg.year))
+        incident['plus']['dbir_year'] = cfg.year
     mydate = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
     if 'created' not in incident['plus']:
         logging.info("%s: auto-filling now() for plus.created", iid)
@@ -626,7 +640,7 @@ def cleanValue(incident, enum):
 
 def convertCSV(incident):
     out = {}
-    out['schema_version'] = "1.3"
+    out['schema_version'] = cfg.version
     if incident.has_key("incident_id"):
         if len(incident['incident_id']):
             out['incident_id'] = incident['incident_id']
@@ -781,13 +795,13 @@ def convertCSV(incident):
             'analyst_notes', 'public_disclosure', 'analysis_status',
             'attack_difficulty_legacy', 'attack_difficulty_subsequent',
             'attack_difficulty_initial', 'security_maturity' ]
-    if args.vcdb:
+    if cfg.vcdb:
         plusfields.append('github')
     for enum in plusfields:
         addValue(incident, 'plus.'+enum, out, "string")
     addValue(incident, 'plus.dbir_year', out, "numeric")
     # addValue(incident, 'plus.external_region', out, "list")
-    if args.vcdb:
+    if cfg.vcdb:
         addValue(incident, 'plus.timeline.notification.year', out, "numeric")
         addValue(incident, 'plus.timeline.notification.month', out, "numeric")
         addValue(incident, 'plus.timeline.notification.day', out, "numeric")
@@ -798,8 +812,7 @@ def convertCSV(incident):
     return out
 
 
-def getCountryCode(countryfile='all.json'):  #
-    # "should probably fix the hard coded filenmae"
+def getCountryCode(countryfile):  # Removed default of 'all.json' - GDB
     # Fixed the hard-coded name - GDB
     country_codes = json.loads(open(countryfile).read())
     country_code_remap = {'Unknown':'000000'}
@@ -822,25 +835,57 @@ def getCountryCode(countryfile='all.json'):  #
 iid = ""  # setting global
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Convert Standard Excel (csv) format to VERIS 1.3 schema-compatible JSON files")
-    parser.add_argument("filename", help="The csv file containing the data")
-    parser.add_argument("-l","--logging",choices=["critical","warning","info"], help="Minimum logging level to display", default="warning")
-    parser.add_argument("-s","--schema", help="The JSON schema file", default="verisvz.json")
-    parser.add_argument("-e","--enum", help="The JSON file with VERIS enumerations", default="verisvz-enum.json")
-    parser.add_argument("--vcdb",help="Convert the data for use in VCDB",action="store_true", default=False)
+    parser.add_argument("--input", help="The csv file containing the data")
+    parser.add_argument("-l","--log_level",choices=["critical","warning","info"], help="Minimum logging level to display", default="warning")
+    parser.add_argument('--log_file', help='Location of log file', default=None)
+    parser.add_argument("-s","--schemafile", help="The JSON schema file", default="../vcdb/veris.json")
+    parser.add_argument("-e","--enumfile", help="The JSON file with VERIS enumerations", default="../vcdb/veris-enum.json")
+    parser.add_argument("--vcdb",help="Convert the data for use in VCDB",action="store_true", default=True)
+    parser.add_argument("--version", help="The version of veris in use", default="1.3")
+    parser.add_argument('--conf', help='The location of the config file', default="./_checkValidity.cfg")
+    parser.add_argument('--year', help='The DBIR year to assign tot he records.')
+    parser.add_argument('--countryfile', help='The json file holdering the country mapping.')
     output_group = parser.add_mutually_exclusive_group()
     output_group.add_argument("-o", "--output", help="directory where json files will be written", default=os.getcwd())
-    output_group.add_argument("-q", "--quiet", help="supress the writing of json files.", action='store_true', default="False")
+    output_group.add_argument("-q", "--quiet", help="suppress the writing of json files.", action='store_true', default="False")
     args = parser.parse_args()
 
     logging_remap = {'warning':logging.WARNING, 'critical':logging.CRITICAL, 'info':logging.INFO}
-    logging.basicConfig(level=logging_remap[args.logging],
+
+    # Parse the config file
+    try:
+        config = ConfigParser.SafeConfigParser()
+        config.readfp(open(args.conf))
+        config_exists = True
+    except:
+        config_exists = False
+        cfg_key = {
+            'GENERAL': ['input', 'output'],
+            'LOGGING': ['level', 'log_file'],
+            'VERIS': ['version', 'schemafile', 'enumfile', 'vcdb', 'year', 'countryfile']
+        }
+        for section in cfg_key.keys():
+            if config.has_section(section):
+                for value in cfg_key[section]:
+                    if value.lower() in config.options(section):
+                        cfg[value] = config.get(section, value)
+
+        #cfg.update({k:v for k,v in vars(args).iteritems() if k not in cfg.keys()})  # copy command line arguments to the 
+        cfg.update(vars(args))  # overwrite configuration file variables with 
+        cfg.year = int(cfg.year)
+        cfg.vcdb = {True:True, False:False, "false":False, "true":True}[cfg.vcdb.lower()]
+
+
+
+    logging.basicConfig(level=logging_remap[cfg.logging],
           format='%(asctime)19s %(levelname)8s %(message)s', datefmt='%m/%d/%Y %H:%M:%S')
-    logging.FileHandler("dump.txt")
+    if log_file is not None:
+        logging.FileHandler(cfg.log_file)
     # format='%(asctime)s %(levelname)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
 
     try:
         # Added to file read to catch multiple columns with same name which causes second column to overwrite first. - GDB
-        file_handle = open(args.filename, 'rU')
+        file_handle = open(cfg.input, 'rU')
         csv_reader = csv.reader(file_handle)
         l = csv_reader.next()
         if len(l) > len(set(l)):
@@ -855,12 +900,12 @@ if __name__ == '__main__':
         exit(1)
 
     try:
-        jschema = openJSON(args.schema)
+        jschema = openJSON(cfg.schema)
     except IOError:
         logging.critical("ERROR: Schema file not found.")
         exit(1)
     try:
-        jenums = openJSON(args.enum)
+        jenums = openJSON(cfg.enum)
     except IOError:
         logging.critical("ERROR: Enumeration file not found.")
         exit(1)
@@ -876,7 +921,7 @@ if __name__ == '__main__':
     if 'source_id' not in infile.fieldnames:
         logging.warning("the optional source_id field is not found in the source document")
 
-    logging.info("Output files will be written to %s",args.output)
+    logging.info("Output files will be written to %s",cfg.output)
     row = 0
     for incident in infile:
         row += 1
@@ -902,17 +947,17 @@ if __name__ == '__main__':
                 logging.info("Skipping row %s", iid)
                 continue
         outjson = convertCSV(incident)
-        country_region = getCountryCode('all.json')
-        checkEnum(outjson, jenums, country_region, args.vcdb)
+        country_region = getCountryCode(cfg.countryfile)
+        checkEnum(outjson, jenums, country_region, cfg.vcdb)
         addRules(outjson)
 
         while repeat > 0:
             outjson['plus']['master_id'] = str(uuid.uuid4()).upper()
-            if args.output.endswith("/"):
-                dest = args.output + outjson['plus']['master_id'] + '.json'
+            if cfg.output.endswith("/"):
+                dest = cfg.output + outjson['plus']['master_id'] + '.json'
                 # dest = args.output + outjson['incident_id'] + '.json'
             else:
-                dest = args.output + '/' + outjson['plus']['master_id'] + '.json'
+                dest = cfg.output + '/' + outjson['plus']['master_id'] + '.json'
                 # dest = args.output + '/' + outjson['incident_id'] + '.json'
             logging.info("%s: writing file to %s", iid, dest)
             try:
