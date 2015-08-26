@@ -871,10 +871,12 @@ if __name__ == '__main__':
     except:
         pass
 
+    logging.warning(cfg)
+
     #cfg.update({k:v for k,v in vars(args).iteritems() if k not in cfg.keys()})  # copy command line arguments to the 
     cfg.update(vars(args))  # overwrite configuration file variables with 
 
-    print(cfg)
+    logging.warning(cfg)
 
     logging.basicConfig(level=logging_remap[cfg["log_level"]],
           format='%(asctime)19s %(levelname)8s %(message)s', datefmt='%m/%d/%Y %H:%M:%S')
