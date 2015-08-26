@@ -878,7 +878,7 @@ if __name__ == '__main__':
     #cfg.update({k:v for k,v in vars(args).iteritems() if k not in cfg.keys()})  # copy command line arguments to the 
     #cfg.update(vars(args))  # overwrite configuration file variables with 
     cfg.update(args)
-    if args.quiet == True:
+    if 'quiet' in args and args['quiet'] == True:
         _ = cfg.pop('output')
 
     logging.warning(args)
