@@ -1,17 +1,5 @@
 #!/usr/bin/python
 
-# Default Configuration Settings
-cfg = {
-    'log_level': 'warning',
-    'log_file': None,
-    'schemafile': "../vcdb/veris.json",
-    'enumfile': "../vcdb/veris-enum.json",
-    'vcdb':False,
-    'version':"1.3",
-    'countryfile':'all.json'
-}
-
-
 import json
 import csv
 import sys
@@ -23,6 +11,19 @@ import logging
 import re
 from datetime import datetime
 import ConfigParser
+
+# Default Configuration Settings
+cfg = {
+    'log_level': 'warning',
+    'log_file': None,
+    'schemafile': "../vcdb/veris.json",
+    'enumfile': "../vcdb/veris-enum.json",
+    'vcdb':False,
+    'version':"1.3",
+    'countryfile':'all.json',
+    'output': os.getcwd(),
+    'quiet': False
+}
 
 def reqSchema(v, base="", mykeylist={}):
     "given schema in v, returns a list of keys and it's type"
@@ -836,18 +837,18 @@ iid = ""  # setting global
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Convert Standard Excel (csv) format to VERIS 1.3 schema-compatible JSON files")
     parser.add_argument("--input", help="The csv file containing the data")
-    parser.add_argument("-l","--log_level",choices=["critical","warning","info"], help="Minimum logging level to display", default="warning")
-    parser.add_argument('--log_file', help='Location of log file', default=None)
-    parser.add_argument("-s","--schemafile", help="The JSON schema file", default="../vcdb/veris.json")
-    parser.add_argument("-e","--enumfile", help="The JSON file with VERIS enumerations", default="../vcdb/veris-enum.json")
-    parser.add_argument("--vcdb",help="Convert the data for use in VCDB",action="store_true", default=True)
-    parser.add_argument("--version", help="The version of veris in use", default="1.3")
-    parser.add_argument('--conf', help='The location of the config file', default="./_checkValidity.cfg")
+    parser.add_argument("-l","--log_level",choices=["critical","warning","info"], help="Minimum logging level to display")
+    parser.add_argument('--log_file', help='Location of log file')
+    parser.add_argument("-s","--schemafile", help="The JSON schema file")
+    parser.add_argument("-e","--enumfile", help="The JSON file with VERIS enumerations")
+    parser.add_argument("--vcdb",help="Convert the data for use in VCDB",action="store_true")
+    parser.add_argument("--version", help="The version of veris in use")
+    parser.add_argument('--conf', help='The location of the config file')
     parser.add_argument('--year', help='The DBIR year to assign tot he records.')
     parser.add_argument('--countryfile', help='The json file holdering the country mapping.')
     output_group = parser.add_mutually_exclusive_group()
-    output_group.add_argument("-o", "--output", help="directory where json files will be written", default=os.getcwd())
-    output_group.add_argument("-q", "--quiet", help="suppress the writing of json files.", action='store_true', default="False")
+    output_group.add_argument("-o", "--output", help="directory where json files will be written")
+    output_group.add_argument("-q", "--quiet", help="suppress the writing of json files.", action='store_true')
     args = parser.parse_args()
 
     logging_remap = {'warning':logging.WARNING, 'critical':logging.CRITICAL, 'info':logging.INFO}
@@ -875,7 +876,10 @@ if __name__ == '__main__':
 
     #cfg.update({k:v for k,v in vars(args).iteritems() if k not in cfg.keys()})  # copy command line arguments to the 
     cfg.update(vars(args))  # overwrite configuration file variables with 
+    if args.quiet == True:
+        _ = cfg.pop('output')
 
+    logging.warning(args)
     logging.warning(cfg)
 
     logging.basicConfig(level=logging_remap[cfg["log_level"]],
