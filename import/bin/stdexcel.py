@@ -918,7 +918,7 @@ if __name__ == '__main__':
     if 'source_id' not in infile.fieldnames:
         logging.warning("the optional source_id field is not found in the source document")
 
-    logging.info("Output files will be written to %s",cfg.output)
+    logging.info("Output files will be written to %s",cfg["output"])
     row = 0
     for incident in infile:
         row += 1
