@@ -897,12 +897,12 @@ if __name__ == '__main__':
         exit(1)
 
     try:
-        jschema = openJSON(cfg["schema"])
+        jschema = openJSON(cfg["schemafile"])
     except IOError:
         logging.critical("ERROR: Schema file not found.")
         exit(1)
     try:
-        jenums = openJSON(cfg["enum"])
+        jenums = openJSON(cfg["enumfile"])
     except IOError:
         logging.critical("ERROR: Enumeration file not found.")
         exit(1)
