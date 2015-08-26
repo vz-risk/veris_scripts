@@ -857,7 +857,7 @@ if __name__ == '__main__':
     # Parse the config file
     try:
         config = ConfigParser.SafeConfigParser()
-        config.readfp(open(args.conf))
+        config.readfp(open(args["conf"]))
         cfg_key = {
             'GENERAL': ['input', 'output'],
             'LOGGING': ['level', 'log_file'],
@@ -873,7 +873,7 @@ if __name__ == '__main__':
         logging.info("config import succeeded.")
     except Exception as e:
         logging.warning("config import failed.")
-        raise e
+        #raise e
         pass
 
     #cfg.update({k:v for k,v in vars(args).iteritems() if k not in cfg.keys()})  # copy command line arguments to the 
