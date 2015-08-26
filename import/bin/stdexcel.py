@@ -856,9 +856,6 @@ if __name__ == '__main__':
     try:
         config = ConfigParser.SafeConfigParser()
         config.readfp(open(args.conf))
-        config_exists = True
-    except:
-        config_exists = False
         cfg_key = {
             'GENERAL': ['input', 'output'],
             'LOGGING': ['level', 'log_file'],
@@ -869,13 +866,13 @@ if __name__ == '__main__':
                 for value in cfg_key[section]:
                     if value.lower() in config.options(section):
                         cfg[value] = config.get(section, value)
-
-        #cfg.update({k:v for k,v in vars(args).iteritems() if k not in cfg.keys()})  # copy command line arguments to the 
-        cfg.update(vars(args))  # overwrite configuration file variables with 
         cfg.year = int(cfg.year)
         cfg.vcdb = {True:True, False:False, "false":False, "true":True}[cfg.vcdb.lower()]
+    except:
+        pass
 
-
+    #cfg.update({k:v for k,v in vars(args).iteritems() if k not in cfg.keys()})  # copy command line arguments to the 
+    cfg.update(vars(args))  # overwrite configuration file variables with 
 
     logging.basicConfig(level=logging_remap[cfg.log_level],
           format='%(asctime)19s %(levelname)8s %(message)s', datefmt='%m/%d/%Y %H:%M:%S')
