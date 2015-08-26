@@ -877,7 +877,7 @@ if __name__ == '__main__':
 
 
 
-    logging.basicConfig(level=logging_remap[cfg.logging],
+    logging.basicConfig(level=logging_remap[cfg.level],
           format='%(asctime)19s %(levelname)8s %(message)s', datefmt='%m/%d/%Y %H:%M:%S')
     if log_file is not None:
         logging.FileHandler(cfg.log_file)
