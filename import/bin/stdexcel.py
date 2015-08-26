@@ -962,7 +962,7 @@ if __name__ == '__main__':
         while repeat > 0:
             outjson['plus']['master_id'] = str(uuid.uuid4()).upper()
             if cfg["output"].endswith("/"):
-                dest = cfg.output + outjson['plus']['master_id'] + '.json'
+                dest = cfg["output"] + outjson['plus']['master_id'] + '.json'
                 # dest = args.output + outjson['incident_id'] + '.json'
             else:
                 dest = cfg["output"] + '/' + outjson['plus']['master_id'] + '.json'
