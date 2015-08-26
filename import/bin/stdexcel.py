@@ -871,8 +871,9 @@ if __name__ == '__main__':
         cfg["year"] = int(cfg["year"])
         cfg["vcdb"] = {True:True, False:False, "false":False, "true":True}[cfg["vcdb"].lower()]
         logging.info("config import succeeded.")
-    except:
+    except Exception as e:
         logging.warning("config import failed.")
+        raise e
         pass
 
     #cfg.update({k:v for k,v in vars(args).iteritems() if k not in cfg.keys()})  # copy command line arguments to the 
@@ -882,7 +883,7 @@ if __name__ == '__main__':
         _ = cfg.pop('output')
 
     logging.info(args)
-    logging.info(cfg)
+    logging.warning(cfg)
 
     logging.basicConfig(level=logging_remap[cfg["log_level"]],
           format='%(asctime)19s %(levelname)8s %(message)s', datefmt='%m/%d/%Y %H:%M:%S')
