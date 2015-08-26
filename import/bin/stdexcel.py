@@ -375,11 +375,11 @@ def checkEnum(incident, schema, country_region, vcdb = False):
                     compareFromTo(astring, incident['attribute'][attribute]['duration']['unit'], schema['timeline']['unit'])
 
     if 'timeline' not in incident: 
-        logging.info("{0}: timeline section missing, auto-fillng in {1}".format(iid, cfg.year-1))
-        incident['timeline'] = { 'incident' : { 'year' : cfg.year-1 } }
+        logging.info("{0}: timeline section missing, auto-fillng in {1}".format(iid, cfg["year"]-1))
+        incident['timeline'] = { 'incident' : { 'year' : cfg["year"]-1 } }
     if 'incident' not in incident['timeline']:
-        logging.info("{0}: timeline.incident section missing, auto-fillng in {1}".format(iid, cfg.year-1))
-        incident['timeline']['incident'] = { 'year' : cfg.year-1 }
+        logging.info("{0}: timeline.incident section missing, auto-fillng in {1}".format(iid, cfg["year"]-1))
+        incident['timeline']['incident'] = { 'year' : cfg["year"]-1 }
         # assume that the schema validator will verify number
     for timeline in ['compromise', 'exfiltration', 'discovery', 'containment']:
         astring = 'timeline.' + timeline + '.unit'
@@ -419,8 +419,8 @@ def checkEnum(incident, schema, country_region, vcdb = False):
             astring = 'plus.' + method
             compareFromTo(astring, incident['plus'][method], schema['plus'][method])
     if 'dbir_year' not in incident['plus'] and vcdb != True:
-        logging.warning("{0}: missing plus.dbir_year, auto-filled {1}".format(iid, cfg.year))
-        incident['plus']['dbir_year'] = cfg.year
+        logging.warning("{0}: missing plus.dbir_year, auto-filled {1}".format(iid, cfg["year"]))
+        incident['plus']['dbir_year'] = cfg["year"]
     mydate = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
     if 'created' not in incident['plus']:
         logging.info("%s: auto-filling now() for plus.created", iid)
@@ -640,7 +640,7 @@ def cleanValue(incident, enum):
 
 def convertCSV(incident):
     out = {}
-    out['schema_version'] = cfg.version
+    out['schema_version'] = cfg["version"]
     if incident.has_key("incident_id"):
         if len(incident['incident_id']):
             out['incident_id'] = incident['incident_id']
@@ -795,13 +795,13 @@ def convertCSV(incident):
             'analyst_notes', 'public_disclosure', 'analysis_status',
             'attack_difficulty_legacy', 'attack_difficulty_subsequent',
             'attack_difficulty_initial', 'security_maturity' ]
-    if cfg.vcdb:
+    if cfg["vcdb"]:
         plusfields.append('github')
     for enum in plusfields:
         addValue(incident, 'plus.'+enum, out, "string")
     addValue(incident, 'plus.dbir_year', out, "numeric")
     # addValue(incident, 'plus.external_region', out, "list")
-    if cfg.vcdb:
+    if cfg["vcdb"]:
         addValue(incident, 'plus.timeline.notification.year', out, "numeric")
         addValue(incident, 'plus.timeline.notification.month', out, "numeric")
         addValue(incident, 'plus.timeline.notification.day', out, "numeric")
@@ -866,23 +866,23 @@ if __name__ == '__main__':
                 for value in cfg_key[section]:
                     if value.lower() in config.options(section):
                         cfg[value] = config.get(section, value)
-        cfg.year = int(cfg.year)
-        cfg.vcdb = {True:True, False:False, "false":False, "true":True}[cfg.vcdb.lower()]
+        cfg["year"] = int(cfg["year"])
+        cfg["vcdb"] = {True:True, False:False, "false":False, "true":True}[cfg["vcdb"].lower()]
     except:
         pass
 
     #cfg.update({k:v for k,v in vars(args).iteritems() if k not in cfg.keys()})  # copy command line arguments to the 
     cfg.update(vars(args))  # overwrite configuration file variables with 
 
-    logging.basicConfig(level=logging_remap[cfg.log_level],
+    logging.basicConfig(level=logging_remap[cfg["log_level"]],
           format='%(asctime)19s %(levelname)8s %(message)s', datefmt='%m/%d/%Y %H:%M:%S')
-    if log_file is not None:
-        logging.FileHandler(cfg.log_file)
+    if cfg["log_file"] is not None:
+        logging.FileHandler(cfg["log_file"])
     # format='%(asctime)s %(levelname)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
 
     try:
         # Added to file read to catch multiple columns with same name which causes second column to overwrite first. - GDB
-        file_handle = open(cfg.input, 'rU')
+        file_handle = open(cfg["input"], 'rU')
         csv_reader = csv.reader(file_handle)
         l = csv_reader.next()
         if len(l) > len(set(l)):
@@ -897,12 +897,12 @@ if __name__ == '__main__':
         exit(1)
 
     try:
-        jschema = openJSON(cfg.schema)
+        jschema = openJSON(cfg["schema"])
     except IOError:
         logging.critical("ERROR: Schema file not found.")
         exit(1)
     try:
-        jenums = openJSON(cfg.enum)
+        jenums = openJSON(cfg["enum"])
     except IOError:
         logging.critical("ERROR: Enumeration file not found.")
         exit(1)
@@ -944,17 +944,17 @@ if __name__ == '__main__':
                 logging.info("Skipping row %s", iid)
                 continue
         outjson = convertCSV(incident)
-        country_region = getCountryCode(cfg.countryfile)
-        checkEnum(outjson, jenums, country_region, cfg.vcdb)
+        country_region = getCountryCode(cfg["countryfile"])
+        checkEnum(outjson, jenums, country_region, cfg["vcdb"])
         addRules(outjson)
 
         while repeat > 0:
             outjson['plus']['master_id'] = str(uuid.uuid4()).upper()
-            if cfg.output.endswith("/"):
+            if cfg["output"].endswith("/"):
                 dest = cfg.output + outjson['plus']['master_id'] + '.json'
                 # dest = args.output + outjson['incident_id'] + '.json'
             else:
-                dest = cfg.output + '/' + outjson['plus']['master_id'] + '.json'
+                dest = cfg["output"] + '/' + outjson['plus']['master_id'] + '.json'
                 # dest = args.output + '/' + outjson['incident_id'] + '.json'
             logging.info("%s: writing file to %s", iid, dest)
             try:
