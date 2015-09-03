@@ -75,7 +75,7 @@ getTSenum <- function(data, depth=NULL, table="df", transpose=FALSE) {
 top_cols <- function(dat, f, L=4, M=6, order.by="timeline.incident.year") {
   
   dat <- data.frame(dat)
-  years <- sort(unique(tline$timeline.incident.year), decreasing=TRUE)[1:L]
+  years <- sort(unique(dat$timeline.incident.year), decreasing=TRUE)[1:L]
   unique(as.vector(sapply(years, function(yr) {
     dat %>% 
       filter_(.dots=list(interp(~which_col==yr,
