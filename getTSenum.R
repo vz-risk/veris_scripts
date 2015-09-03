@@ -90,23 +90,23 @@ top_cols <- function(dat, f, L=4, M=6, order.by="timeline.incident.year") {
 
 
 ######## EXAMPLE USAGE  #########
-library(ggplot2)
-library(reshape2)
-# Select Assets and build the time series data with getTSenum
-chunk <- vz %>% 
-  select(starts_with("asset.assets.variety."), 
-              timeline.incident.year) %>%
-  getTSenum(depth=4)
-# view the data
-chunk
-# view the data as a matrix. (NOTE: this could have been done by putting `, table='x'` in the getTSenum() call.)
-chunk %>% acast(enum~timeline.incident.year, value.var="x", fill=0)
-# Visualize with ggplot
-chunk %>% 
-  ggplot(aes(timeline.incident.year, x, color=enum, fill=enum)) +  # set the asthetics ('aes'). This is the x, the y, and how to color/fill things.
-  geom_area( position = 'stack') + # this is the shape we want.  We want lines with areas between them so we use geom_area.  we set 'stack' because we want them on top of each other.
-  scale_colour_tableau() +  # The default line colors are ugly.  Use the tableau colors.
-  scale_fill_tableau()  # The default shape colors are ugly.  Use the tableau colors.
+#library(ggplot2)
+#library(reshape2)
+## Select Assets and build the time series data with getTSenum
+#chunk <- vz %>% 
+#  select(starts_with("asset.assets.variety."), 
+#              timeline.incident.year) %>%
+#  getTSenum(depth=4)
+## view the data
+#chunk
+## view the data as a matrix. (NOTE: this could have been done by putting `, table='x'` in the getTSenum() call.)
+#chunk %>% acast(enum~timeline.incident.year, value.var="x", fill=0)
+## Visualize with ggplot
+#chunk %>% 
+#  ggplot(aes(timeline.incident.year, x, color=enum, fill=enum)) +  # set the asthetics ('aes'). This is the x, the y, and how to color/fill things.
+#  geom_area( position = 'stack') + # this is the shape we want.  We want lines with areas between them so we use geom_area.  we set 'stack' because we want them on top of each other.
+#  scale_colour_tableau() +  # The default line colors are ugly.  Use the tableau colors.
+#  scale_fill_tableau()  # The default shape colors are ugly.  Use the tableau colors.
 
 # That was WAY too much information in a matrix or chart.  We can, however, subset it.
 m = 4  # we want to find the top assets over the last 4 years

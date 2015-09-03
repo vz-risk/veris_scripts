@@ -60,7 +60,7 @@ gg <- gg + aes(x=differential)
 gg <- gg + geom_histogram()
 gg <- gg + geom_vline(aes(xintercept=median(differential), color='red'))
 gg <- gg + annotate("text", x=9, y=-1, label="Median", color="red")
-gg <- gg + labs(x="Days", y="Incidents", title="Discovery to Containment Time")
+gg <- gg + labs(x="Days", y="Incidents", title="Discovery to Containment Time (Incidents)")
 gg <- gg + theme_hc()
 gg
 
