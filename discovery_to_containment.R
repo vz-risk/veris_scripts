@@ -1,18 +1,18 @@
-DESCRIPTION <- "Analyze discovery to containment time.  First check the data to make sure it's useful for analysis.  Then do all the stuff to calculate the difference.  Then chart it in a histogram."
+DESCRIPTION <- "Analyze discovery to containment time of breaches.  First check the data to make sure it's useful for analysis.  Then do all the stuff to calculate the difference.  Then chart it in a histogram."
 
 # Check the number of incidents we have to work with.  Should be about 145 out of 200k
-vz %>% filter(timeline.discovery.value > 0 & timeline.containment.value > 0) %>% dim
+vz %>% filter(attribute.confidentiality.data_disclosure.Yes) %>% filter(timeline.discovery.value > 0 & timeline.containment.value > 0) %>% dim
 
 # Test to ensure actions are not too biased
-vz %>% filter(timeline.discovery.value > 0 & timeline.containment.value > 0) %>% getenum("action")
+vz %>% filter(attribute.confidentiality.data_disclosure.Yes) %>% filter(timeline.discovery.value > 0 & timeline.containment.value > 0) %>% getenum("action")
 # (They aren't)
 
 # Test that attributes aren't too biased
-vz %>% filter(timeline.discovery.value > 0 & timeline.containment.value > 0) %>% getenum("attribute")
+vz %>% filter(attribute.confidentiality.data_disclosure.Yes) %>% filter(timeline.discovery.value > 0 & timeline.containment.value > 0) %>% getenum("attribute")
 # (They aren't)
 
 # Gather the containment times
-chunk <-  vz %>% filter(timeline.discovery.value > 0 & timeline.containment.value > 0) %>% 
+chunk <-  vz %>% filter(attribute.confidentiality.data_disclosure.Yes) %>% filter(timeline.discovery.value > 0 & timeline.containment.value > 0) %>% 
   select(starts_with("timeline.containment.unit."),
          timeline.containment.value, 
          plus.master_id) %>%
@@ -24,7 +24,7 @@ chunk <-  vz %>% filter(timeline.discovery.value > 0 & timeline.containment.valu
   rename(`Containment Value` = timeline.containment.value)
 
 # gather the discovery times
-temp <-  vz %>% filter(timeline.discovery.value > 0 & timeline.containment.value > 0) %>% 
+temp <-  vz %>% filter(attribute.confidentiality.data_disclosure.Yes) %>% filter(timeline.discovery.value > 0 & timeline.containment.value > 0) %>% 
   select(starts_with("timeline.discovery.unit."),
          timeline.discovery.value, 
          plus.master_id) %>%
@@ -50,11 +50,19 @@ chunk$`Discovery Unit` <- as.numeric(levels(chunk$`Discovery Unit`))[chunk$`Disc
 chunk$`Containment Unit` <- as.numeric(levels(chunk$`Containment Unit`))[chunk$`Containment Unit`]
 
 # Calculate the differential
-chunk <- chunk %>% mutate(differential = `Containment Value` * `Containment Unit` - `Discovery Value` * `Discovery Value`)
+chunk <- chunk %>% mutate(differential = `Containment Value` * `Containment Unit` - `Discovery Value` * `Discovery Unit`)
+chunk <- chunk %>% mutate(`Differential Days` = `Discovery Value` * `Discovery Unit`)
 
 # since sometimes contaiment is from discovery & sometimes it's from compromise, we'll fix that
 chunk <- chunk %>% filter(differential < 0) %>% mutate(differential = `Containment Value` * `Containment Unit`)
 
+# Median time to discovery
+median(chunk$`Discovery Days`)
+
+# Median time from discovery to containment
+median(chunk$differential)
+
+# (notice data is long-tailed)
 gg <- chunk %>% ggplot() 
 gg <- gg + aes(x=differential) 
 gg <- gg + geom_histogram()
