@@ -832,6 +832,55 @@ def getCountryCode(countryfile):  # Removed default of 'all.json' - GDB
 # jenums = openJSON("verisvz-enum.json")
 # jscehma = openJSON("verisvz.json")
 
+def main(infile, cfg, reqfields, sfields, jenums, jschema):
+    for f in infile.fieldnames:
+        if f not in sfields:
+            if f != "repeat":
+                logging.warning("column will not be used: %s", f)
+    if 'plus.analyst' not in infile.fieldnames:
+        logging.warning("the optional plus.analyst field is not found in the source document")
+    if 'source_id' not in infile.fieldnames:
+        logging.warning("the optional source_id field is not found in the source document")
+
+    logging.info("Output files will be written to %s",cfg["output"])
+    row = 0
+    for incident in infile:
+        row += 1
+        # have to look for white-space only and remove it
+        incident = { x:incident[x].strip() for x in incident }
+
+        if 'incident_id' in incident:
+            iid = incident['incident_id']
+        else:
+            iid = "srcrow_" + str(row)
+        # logging.warning("This includes the row number")
+        repeat = 1
+        logging.info("-----> parsing incident %s", iid)
+        if incident.has_key('repeat'):
+            if incident['repeat'].lower()=="ignore" or incident['repeat'] == "0":
+                logging.info("Skipping row %s", iid)
+                continue
+            repeat = isnum(incident['repeat'])
+            if not repeat:
+                repeat = 1
+        if incident.has_key('security_incident'):
+            if incident['security_incident'].lower()=="no":
+                logging.info("Skipping row %s", iid)
+                continue
+        outjson = convertCSV(incident)
+        country_region = getCountryCode(cfg["countryfile"])
+        checkEnum(outjson, jenums, country_region, cfg["vcdb"])
+        addRules(outjson)
+
+        while repeat > 0:
+            outjson['plus']['master_id'] = str(uuid.uuid4()).upper()
+            yield iid, outjson
+            # outjson['incident_id'] = str(uuid.uuid4()).upper()     ### HERE
+            # outjson['plus']['master_id'] = outjson['incident_id']  ###
+            repeat -= 1
+            if repeat > 0:
+                logging.info("Repeating %s more times on %s", repeat, iid)
+
 
 iid = ""  # setting global
 if __name__ == '__main__':
@@ -920,62 +969,21 @@ if __name__ == '__main__':
 
     reqfields = reqSchema(jschema)
     sfields = parseSchema(jschema)
-    for f in infile.fieldnames:
-        if f not in sfields:
-            if f != "repeat":
-                logging.warning("column will not be used: %s", f)
-    if 'plus.analyst' not in infile.fieldnames:
-        logging.warning("the optional plus.analyst field is not found in the source document")
-    if 'source_id' not in infile.fieldnames:
-        logging.warning("the optional source_id field is not found in the source document")
 
-    logging.info("Output files will be written to %s",cfg["output"])
-    row = 0
-    for incident in infile:
-        row += 1
-        # have to look for white-space only and remove it
-        incident = { x:incident[x].strip() for x in incident }
-
-        if 'incident_id' in incident:
-            iid = incident['incident_id']
+    # call the main loop which yields json incidents
+    for iid, incident_json in main(infile, cfg, reqfields, sfields, jenums, jschema):
+        # write the json to a file
+        if cfg["output"].endswith("/"):
+            dest = cfg["output"] + incident_json['plus']['master_id'] + '.json'
+            # dest = args.output + outjson['incident_id'] + '.json'
         else:
-            iid = "srcrow_" + str(row)
-        # logging.warning("This includes the row number")
-        repeat = 1
-        logging.info("-----> parsing incident %s", iid)
-        if incident.has_key('repeat'):
-            if incident['repeat'].lower()=="ignore" or incident['repeat'] == "0":
-                logging.info("Skipping row %s", iid)
-                continue
-            repeat = isnum(incident['repeat'])
-            if not repeat:
-                repeat = 1
-        if incident.has_key('security_incident'):
-            if incident['security_incident'].lower()=="no":
-                logging.info("Skipping row %s", iid)
-                continue
-        outjson = convertCSV(incident)
-        country_region = getCountryCode(cfg["countryfile"])
-        checkEnum(outjson, jenums, country_region, cfg["vcdb"])
-        addRules(outjson)
+            dest = cfg["output"] + '/' + incident_json['plus']['master_id'] + '.json'
+            # dest = args.output + '/' + outjson['incident_id'] + '.json'
+        logging.info("%s: writing file to %s", iid, dest)
+        try:
+            fwrite = open(dest, 'w')
+            fwrite.write(json.dumps(incident_json, indent=2, sort_keys=True))
+            fwrite.close()
+        except UnicodeDecodeError:
+            print incident_json
 
-        while repeat > 0:
-            outjson['plus']['master_id'] = str(uuid.uuid4()).upper()
-            if cfg["output"].endswith("/"):
-                dest = cfg["output"] + outjson['plus']['master_id'] + '.json'
-                # dest = args.output + outjson['incident_id'] + '.json'
-            else:
-                dest = cfg["output"] + '/' + outjson['plus']['master_id'] + '.json'
-                # dest = args.output + '/' + outjson['incident_id'] + '.json'
-            logging.info("%s: writing file to %s", iid, dest)
-            try:
-                fwrite = open(dest, 'w')
-                fwrite.write(json.dumps(outjson, indent=2, sort_keys=True))
-                fwrite.close()
-            except UnicodeDecodeError:
-                print outjson
-            # outjson['incident_id'] = str(uuid.uuid4()).upper()     ### HERE
-            # outjson['plus']['master_id'] = outjson['incident_id']  ###
-            repeat -= 1
-            if repeat > 0:
-                logging.info("Repeating %s more times on %s", repeat, iid)
