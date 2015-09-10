@@ -162,7 +162,7 @@ def checkIndustry(label, industry):
         logging.warning("%s: %s is not numbers: \"%s\"", iid, label, industry)
         # retString.append("must be numbers or one of 31-33, 44-45, 48-49")
 
-def checkEnum(incident, schema, country_region, vcdb = False):
+def checkEnum(incident, schema, country_region, cfg=cfg):
     if 'security_incident' not in incident:
         logging.warning("%s: security_incident not found (required)", iid)
     else:
@@ -419,7 +419,7 @@ def checkEnum(incident, schema, country_region, vcdb = False):
         if incident['plus'].has_key(method):
             astring = 'plus.' + method
             compareFromTo(astring, incident['plus'][method], schema['plus'][method])
-    if 'dbir_year' not in incident['plus'] and vcdb != True:
+    if 'dbir_year' not in incident['plus'] and cfg['vcdb'] != True:
         logging.warning("{0}: missing plus.dbir_year, auto-filled {1}".format(iid, cfg["year"]))
         incident['plus']['dbir_year'] = cfg["year"]
     mydate = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
@@ -639,7 +639,7 @@ def cleanValue(incident, enum):
     v = re.sub("[,]+", ",", v)
     return(v)
 
-def convertCSV(incident):
+def convertCSV(incident, cfg=cfg):
     out = {}
     out['schema_version'] = cfg["version"]
     if incident.has_key("incident_id"):
@@ -842,7 +842,6 @@ def main(infile, cfg, reqfields, sfields, jenums, jschema):
     if 'source_id' not in infile.fieldnames:
         logging.warning("the optional source_id field is not found in the source document")
 
-    logging.info("Output files will be written to %s",cfg["output"])
     row = 0
     for incident in infile:
         row += 1
@@ -867,9 +866,9 @@ def main(infile, cfg, reqfields, sfields, jenums, jschema):
             if incident['security_incident'].lower()=="no":
                 logging.info("Skipping row %s", iid)
                 continue
-        outjson = convertCSV(incident)
+        outjson = convertCSV(incident, cfg)
         country_region = getCountryCode(cfg["countryfile"])
-        checkEnum(outjson, jenums, country_region, cfg["vcdb"])
+        checkEnum(outjson, jenums, country_region, cfg)
         addRules(outjson)
 
         while repeat > 0:
@@ -919,8 +918,8 @@ if __name__ == '__main__':
                         cfg[value] = config.get(section, value)
         cfg["year"] = int(cfg["year"])
         cfg["vcdb"] = {True:True, False:False, "false":False, "true":True}[cfg["vcdb"].lower()]
-    except Exception as e:
         logging.debug("config import succeeded.")
+    except Exception as e:
         logging.warning("config import failed.")
         #raise e
         pass
@@ -971,6 +970,7 @@ if __name__ == '__main__':
     sfields = parseSchema(jschema)
 
     # call the main loop which yields json incidents
+    logging.info("Output files will be written to %s",cfg["output"])
     for iid, incident_json in main(infile, cfg, reqfields, sfields, jenums, jschema):
         # write the json to a file
         if cfg["output"].endswith("/"):

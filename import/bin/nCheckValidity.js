@@ -21,11 +21,17 @@ var parser = new ArgumentParser({
 });
 
 // read the configuration file if it is present
-var config = ini.parse(fs.readFileSync('./_checkValidity.cfg', 'utf8'));
+//var config = ini.parse(fs.readFileSync('./_checkValidity.cfg', 'utf8'));
 
 parser.addArgument(['-p', '--path'], {help:"list of folders to search for incident files. e.g. /path/to/files/", nargs: '+'})
 parser.addArgument(['-s', '--schema'], {help:"Fully-merged schema file to validate incidents."})
+parser.addArgument(['-c', '--config'], {help:"The config file to use.", 'defaultValue':null})
 var args = parser.parseArgs();
+
+if (args.config !== null) {
+  // read the configuration file if it is present
+  var config = ini.parse(fs.readFileSync(args.config, 'utf8'));
+}
 
 // options specified at the command line trump whatever is in the
 // configuration file
@@ -39,7 +45,7 @@ var invalidSourceIDs = ["na", "none", "null", "undefined"]; // needs to be sorte
 var checkSourceID = function(filename, inIncident) {
     var sourceID = inIncident.source_id;
     if(!sourceID || us.indexOf(invalidSourceIDs,sourceID.toLowerCase(),true) != -1) {
-        console.log(filename + ": has an invalid source_id.");
+        console.log('Error in ' + filename + ": has an invalid source_id.");
     }
 }
 
@@ -48,10 +54,10 @@ var checkNAICS = function(filename, inIncident) {
   var naics = ((inIncident.victim || {}).industry || '000');
   var partner = (((inIncident.actor || {}).partner || {}).industry || '000');
   if (!vn(naics)) {
-    console.log(filename + ": has an invalid victim naics code.");
+    console.log('Error in ' + filename + ": has an invalid victim naics code.");
   }
   if (!vn(partner)) {
-    console.log(filename + ": has an invalid partner naics code.")
+    console.log('Error in ' + filename + ": has an invalid partner naics code.")
   }
 
 }
@@ -61,7 +67,7 @@ var checkMalwareIntegrity = function(filename, inIncident) {
   if (inIncident.action.hasOwnProperty('malware') && (((inIncident.attribute || {})
                                                 .integrity || {})
                                                 .variety || []).indexOf('Software installation') == -1) {
-    console.log(filename + ": " + "Malware present, but no Software installation in attribute.integrity.variety");
+    console.log('Error in ' + filename + ": " + "Malware present, but no Software installation in attribute.integrity.variety.");
   }
 }
 
@@ -69,14 +75,14 @@ var checkSocialIntegrity = function(filename, inIncident) {
   if (inIncident.action.hasOwnProperty('social') && (((inIncident.attribute || {})
                                                         .integrity || {})
                                                         .variety || []).indexOf('Alter behavior') == -1) {
-    console.log(filename + ": " + "acton.social present, but Alter behavior not in attribute.integrity.variety")
+    console.log('Error in ' + filename + ": " + "acton.social present, but Alter behavior not in attribute.integrity.variety.")
   }
 }
 
 var checkSQLiRepurpose = function(filename, inIncident) {
   if ( (((inIncident.action || {}).hacking || {}).variety || []).indexOf('SQLi') > -1) {
     if ( (((inIncident.attribute || {}).integrity || {}).variety || []).indexOf('Repurpose') == -1) {
-      console.log(filename + ": " + "action.hacking.SQLi present but Repurpose not in attribute.integrity.variety")
+      console.log('Error in ' + filename + ": " + "action.hacking.SQLi present but Repurpose not in attribute.integrity.variety.")
     }
   }
 }
@@ -84,7 +90,7 @@ var checkSQLiRepurpose = function(filename, inIncident) {
 var checkSecurityIncident = function(filename, inIncident) {
   if ((inIncident.security_incident || '') == 'Confirmed') {
     if (!inIncident.hasOwnProperty('attribute')) {
-      console.log(filename + ": " + "security_incident Confirmed but attribute section not present")
+      console.log('Error in ' + filename + ": " + "security_incident Confirmed but attribute section not present.")
     }
   }
 }
@@ -99,7 +105,7 @@ var checkLossTheftAvailability = function(filename, inIncident) {
   }
   if (expectLoss) {
     if ( (((inIncident.attribute || {}).availability || {}).variety || []).indexOf('Loss') == -1) {
-      console.log(filename + ": " + "action.physical.theft or action.error.loss present but attribute.availability.loss not present")
+      console.log('Error in ' + filename + ": " + "action.physical.theft or action.error.loss present but attribute.availability.loss not present.")
     }
   }
 }
@@ -113,7 +119,7 @@ var checkWebVectorAsset = function(filename, inIncident) {
       }
     })
     if (noWebAsset) {
-      console.log(filename + ": " + "action.hacking.vector.Web application present but asset.assets does not include S - Web application");
+      console.log('Error in ' + filename + ": " + "action.hacking.vector.Web application present but asset.assets does not include S - Web application.");
     }
   }
 }
@@ -121,7 +127,7 @@ var checkWebVectorAsset = function(filename, inIncident) {
 var checkPlusAttributeConsistency = function(filename, inIncident) {
   if( ((inIncident.plus || {}).attribute || {}).hasOwnProperty('confidentiality')) {
     if( !((inIncident.attribute || {}).hasOwnProperty('confidentiality'))) {
-      console.log(filename + ": " + "plus.attribute.confidentiality present but confidentiality is not an affected attribute.")
+      console.log('Error in ' + filename + ": " + "plus.attribute.confidentiality present but confidentiality is not an affected attribute.")
     }
   }
 }
@@ -147,17 +153,18 @@ var checkIncidentDate = function(filename, inIncident) {
     validDate = false;
   }
   if(!validDate){
-    console.log(filename + ": " + "timeline.incident is not a valid date: " + fullDate + ".")
+    console.log('Error in ' + filename + ": " + "timeline.incident is not a valid date: " + fullDate + ".")
   }
 }
 
 // Loop through every path provided at the command line
 pathList.forEach(function(directory) {
   //console.log(directory)
-  fs.readdir(directory, function(error, list) {
-    if (error) {
-      throw error;
-    }
+  if (fs.lstatSync(directory).isDirectory()) {
+    fs.readdir(directory, function(error, list) {
+        if (error) {
+          throw error;
+        }
 
     // For every file in the list
       list.forEach(function (file) {
@@ -183,9 +190,37 @@ pathList.forEach(function(directory) {
           checkIncidentDate(fullFile, obj);
           checkWebVectorAsset(fullFile, obj);
           results.errors.forEach(function (message) {
-            console.log(fullFile + ": " + message.stack);
+            console.log('Error in ' + fullFile + ": " + message.stack);
           })
         })
       })
-  })
+    })
+  } else if (fs.lstatSync(directory).isFile()) {
+    fs.readFile(directory, 'utf8', function(error, data) {
+      if (error) {
+        throw error;
+      }
+
+      var outJSON = JSON.parse(data);
+      for (var fullFile in outJSON) {
+        if (outJSON.hasOwnProperty(fullFile)) {
+          var obj = outJSON[fullFile];
+          var results = validate(obj, schema);
+          checkSourceID(fullFile, obj);
+          checkMalwareIntegrity(fullFile, obj);
+          checkSocialIntegrity(fullFile, obj);
+          checkSQLiRepurpose(fullFile, obj);
+          checkSecurityIncident(fullFile, obj);
+          checkLossTheftAvailability(fullFile, obj);
+          checkPlusAttributeConsistency(fullFile, obj);
+          checkNAICS(fullFile, obj);
+          checkIncidentDate(fullFile, obj);
+          checkWebVectorAsset(fullFile, obj);
+          results.errors.forEach(function (message) {
+            console.log('Error in ' + fullFile + ": " + message.stack);
+          })
+        }
+      }
+    })
+  }
 });
