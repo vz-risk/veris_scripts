@@ -5,9 +5,6 @@ import copy
 import matplotlib.pyplot as plt
 from prettytable import PrettyTable
 
-# Download the correct attack graph from https://github.com/vz-risk/VERISAG/tree/v2/static.  The numbers are the first 2 numbers of the NAICS code. Download the gexf version.
-GRAPH_FILE = "LOCATION YOU SAVED THE GEXF FILE TO"
-
 # Set locations
 LOCATION = "~/Documents/Development/VERISAG/"
 FILTERS = "~/Documents/Development/VERISAG/filter.txt"
@@ -19,9 +16,23 @@ fp, pathname, description = imp.find_module("V2AG", [LOCATION])
 V2AG = imp.load_module("V2AG", fp, pathname, description)
 analysis = V2AG.attack_graph_analysis.analyze()
 
+## OPT 1: BUILD A GRAPH
+CSV_FILE_OR_JSON_DIRECTORY = "LOCATION OF SAVED CSV FILE FROM VERISR, A DIRECTORY OF VERIS JSON FILES, OR A LIST OF DIRECTORIES OF JSON FILES"
+
+# Load the data into the attack graph
+DBIRAG = V2AG.attack_graph(CSV_FILE_OR_JSON_DIRECTORY, FILTERS)
+## End OPT 1
+
+## OPT 2: READ EXISTING GRAPH
+# Download the correct attack graph from https://github.com/vz-risk/VERISAG/tree/v2/static.  The numbers are the first 2 numbers of the NAICS code. Download the gexf version.
+GRAPH_FILE = "LOCATION YOU SAVED THE GEXF FILE TO"
+
 # Create the attack graph object
 DBIRAG = V2AG.attack_graph(None, filter_file=FILTERS, build=False)
 DBIRAG.g = nx.read_gexf(GRAPH_FILE)
+
+## End OPT 2
+
 
 # Ensure edge weights are populated
 DBIRAG.g = DBIRAG.normalize_weights(DBIRAG.g)
