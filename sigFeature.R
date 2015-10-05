@@ -11,7 +11,9 @@ DESCRIPTION <- "identify the features which make a group withen an enumeration o
 #           4   attribute.availability.variety  6.560892e+01
 #           5   asset.assets.variety    5.287068e+01
 #           ...
-#           To understand "Cyber-Espionage" we should therefore subset to it and enumerate "action.hacking.variety". 
+#           To understand "Cyber-Espionage" we should therefore subset to it and enumerate "action.hacking.variety" or "action.external.variety":
+#           vz %>% filter(pattern.Cyber-Espionage) %>% getenum("action.external.variety")
+#           vz %>% filter(!pattern.Cyber-Espionage) %>% getenum("action.external.variety")
 # WARNING: df must only contain logicals which roll up to factors.  Thats the majority of the VERISR data, but not all of it.
 # WARNING: The distribution comparison algorithm assumes a sum of 100% across a vector.  Since we have some groups that don't have
 #          the feature at all, and some that have more than 100% (say when 2 values for action.hacking.variety are chosen) 
@@ -27,7 +29,7 @@ DESCRIPTION <- "identify the features which make a group withen an enumeration o
 #       problem 2: the values max at the distances so c(1,0,0) to c(0,0,1) would be 3. That needs to be normalized
 # NOTE: This uses a nested 'for' loop.  I'm sorry.
 # NOTE: This takes a second to run.  See note about nested 'for' loops and me being sorry.
-sigFactors <- function(df, group_feature) {
+sigFeatures <- function(df, group_feature) {
     require(dplyr)
     require(tidyr)
     require(qdapTools)
@@ -99,3 +101,4 @@ sigFactors <- function(df, group_feature) {
 
     results
 }
+
