@@ -21,6 +21,7 @@ DESCRIPTION <- "identify the features which make a group withen an enumeration o
 #' 
 #' @param df A verisr object subsetted to feature columns of interest plus the \code{group_feature} column(s)
 #' @param group_feature The feature you want to understand how the patterns are different in. Maybe be a single column like 'pattern' or a column part of a set of columns like 'action.malware.variety.Other'
+#' @return a matrix of the levels of group_feature vs the other features with values representing the significance of the feature to the level.
 #' @examples
 #' sf <- vz %>% select(contains("variety"), contains("vector"), pattern) %>% sigFeatures("pattern")` will let us know what
 #'          features relevant per pattern.  `sf["Cyber-Espionage", ] %>% sort(decreasing=TRUE) %>% View()` will produce the following:
@@ -43,7 +44,7 @@ DESCRIPTION <- "identify the features which make a group withen an enumeration o
 #'                              matches("timeline.*.unit.*"))
 #'   breaches <- incidents %>% filter(attribute.confidentiality.data_disclosure.Yes)
 #'   sf <- breaches %>% select(-timeline.incident.year, -plus.dbir_year) %>% sigFeatures("action.malware.vector.Email link")
-#'   sf["Email link", ] %>% sort(decreasing=TRUE)
+#'   sf["Email link", ] %>% melt() %>% add_rownames() %>% arrange(desc(value))
 #'   action.hacking.variety      Inf
 #'   actor.external.variety      Inf
 #'   asset.assets.variety        Inf
@@ -64,6 +65,13 @@ DESCRIPTION <- "identify the features which make a group withen an enumeration o
 #'    8: Unknown  7 49 0.14285714
 #'    9:   Weeks  2 49 0.04081633
 #'    10:   Years  0 49 0.00000000
+#'   vz %>% filter(`action.malware.vector.Email link`) %>% select(starts_with("timeline.compromise.unit"), timeline.incident.year) %>% getTSenum(depth=4, table="x", transpose=TRUE)
+#'   Days Hours Minutes Months NA Never Seconds Unknown Weeks Years
+#'   2010    4     0       0      0  0     0       0       0     0     0
+#'   2011    0     0       0      0  0     0       1       0     1     0
+#'   2012    0     1       0      0  0     0       5       3     0     0
+#'   2013    3     0       1      0  4     0       5       3     0     0
+#'   2014    4     1       0      0 11     0       0       1     1     0
 sigFeatures <- function(df, group_feature) {
     require(qdapTools)
     require(tidyr)

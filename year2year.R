@@ -92,7 +92,7 @@ year2year <- function(df, current_year=NULL, last_year=NULL, filter=TRUE) {
     #  (We use 45 in the standard report)
     #df_ratio %>% filter(Count > 45)
     # Filter record counts at or or below 1/1000 of the total records
-    df_ratio <- df_ratio %>% filter(Count > nrow(breaches) / 1000)
+    df_ratio <- df_ratio %>% filter(Count > nrow(df) / 1000)
   }
   
   # Order it
