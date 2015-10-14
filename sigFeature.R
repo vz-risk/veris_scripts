@@ -166,12 +166,13 @@ sigFeatures <- function(df, group_feature) {
                 g <- feature_chunk[as.character(group), ]
               
                 not_g <- colSums(feature_chunk[setdiff(rownames(feature_chunk), as.character(group)), ])
-     
-                results[as.character(group), feature] <- 0.5 * chi2.plugin(g, not_g)
-                #results[group, feature] <- KL.plugin(feature_chunk[group, 
-                #                                                        setdiff(colnames(feature_chunk), group_feature)], 
-                #                                             colSums(feature_chunk[setdiff(rownames(feature_chunk), group), 
-                #                                                                setdiff(colnames(feature_chunk), group_feature)]))
+
+                # checks if not_g is all 0's.  if it is, chi2 will fail
+                if (unique(not_g) != 0) {
+                    results[as.character(group), feature] <- 0.5 * chi2.plugin(g, not_g)
+                } else {
+                  results[as.character(group), feature] <- NaN
+                }
             }
         }
     }
