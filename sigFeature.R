@@ -147,7 +147,7 @@ sigFeatures <- function(df, group_feature) {
           rownames(chunk_cast) <- chunk_cast[[chunk_group_feature]]
         }
           
-        feature_chunk_cols <- unique(chunk_gather[chunk_gather$enum == feature]$value)
+        feature_chunk_cols <- unique(chunk_gather[chunk_gather$enum == feature, ]$value)
         feature_chunk_rows <- unique(chunk_gather[[chunk_group_feature]])
         
         feature_chunk <- matrix(data=0, 
