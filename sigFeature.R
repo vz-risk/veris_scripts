@@ -164,8 +164,12 @@ sigFeatures <- function(df, group_feature) {
             for (group in unique(chunk_gather[[chunk_group_feature]])) {
               
                 g <- feature_chunk[as.character(group), ]
-              
-                not_g <- colSums(feature_chunk[setdiff(rownames(feature_chunk), as.character(group)), ])
+                
+                if (nrow(feature_chunk) > 2) {
+                  not_g <- colSums(feature_chunk[setdiff(rownames(feature_chunk), as.character(group)), ])
+                } else {
+                  not_g <- feature_chunk[setdiff(rownames(feature_chunk), as.character(group)), ]
+                }
 
                 # checks if not_g is all 0's.  if it is, chi2 will fail
                 if (unique(not_g) != 0) {

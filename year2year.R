@@ -94,12 +94,12 @@ year2year <- function(df, current_year=NULL, last_year=NULL, filter=TRUE) {
   if (filter) {  
     # Need to choose outliers
     # The data is long tailed so no mean/SD
-    ratio_percentiles <- quantile(abs_ratio(df_ratio), c(0.95))
+    ratio_percentiles <- quantile(abs_ratio(df_ratio), c(0.97))
     diff_percentiles <- quantile(abs(df_diff), c(0.95))
 
     # Filter
 #    df_ratio <- df_ratio[df_ratio > percentiles[1]]
-    ret <- ret[ret[["Ratio"]] >= ratio_percentiles[1] | ret[["Difference"]] >= diff_percentiles[1], ]
+    ret <- ret[ret[["Ratio"]] > ratio_percentiles[1] | ret[["Difference"]] > diff_percentiles[1], ]
         
     # Filter record counts at or below the 50th percentile (picked totally arbitrarily)
     #df_ratio %>% filter(Count > quantile(df_ratio$Count, c(.5))["50%"])
