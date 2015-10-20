@@ -99,7 +99,7 @@ year2year <- function(df, current_year=NULL, last_year=NULL, filter=TRUE) {
 
     # Filter
 #    df_ratio <- df_ratio[df_ratio > percentiles[1]]
-    ret <- ret[ret[["Ratio"]] > ratio_percentiles[1] | ret[["Difference"]] > diff_percentiles[1], ]
+    ret <- ret[abs_ratio(ret[["Ratio"]]) > ratio_percentiles[1] | abs(ret[["Difference"]]) > diff_percentiles[1], ]
         
     # Filter record counts at or below the 50th percentile (picked totally arbitrarily)
     #df_ratio %>% filter(Count > quantile(df_ratio$Count, c(.5))["50%"])
