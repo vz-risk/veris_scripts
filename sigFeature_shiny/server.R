@@ -1,6 +1,7 @@
 ### SET VARIABLES
-veris_scripts <- "/Users/v685573/Documents/Development/vzrisk/veris_scripts/"
+veris_scripts <- "../"
 options(shiny.maxRequestSize=30*1024^2) 
+
 ### LOAD PACKAGES
 library(MASS)
 library(binom)
