@@ -4,6 +4,9 @@ import networkx as nx
 import copy
 import matplotlib.pyplot as plt
 from prettytable import PrettyTable
+import csv
+
+MITIGATIONS_FILE = "LOCATION TO STORE CSV FILE OF MITIGATIONS AND PATH LENGTH"
 
 # Set locations
 LOCATION = "~/Documents/Development/VERISAG/"
@@ -118,3 +121,11 @@ plt.ylim(ymin = 0)
 # The labels below may or may not be correct, but you get the idea
 for i in range(4):  # if more mitigations make significant changes, increase 4 to 5 or 6
     plt.text(x[i+1] + .2, shortest_paths[i+1]-.02, mitigations[i])
+    
+    
+# Write to file
+with open(MITIGATIONS_FILE, "w") as f:
+     csv_writer = csv.writer(f)
+     csv_writer.writerow(["Mitigation", "Relative Path Length"])
+     for i in range(len(mitigations)):
+         csv_writer.writerow([mitigations[i], shortest_paths[i]]  )  
