@@ -124,13 +124,16 @@ shinyServer(function(input, output) {
                            contains("vector"),
                            starts_with("attribute.confidentiality.data_disclosure"), 
                            starts_with("data_discovery"), 
+                           starts_with("pattern."),
                            matches("^victim.(industry2.|employee_count|orgsize)"), 
                            matches("timeline.*.unit.*"),
                            starts_with("victim.country."))
     }
     
     output$incidentCount <- renderText({
-      paste(nrow(incidents), "incidents.")
+      num_incidents <- nrow(incidents)
+      num_breaches <- incidents %>% filter(attribute.confidentiality.data_disclosure.Yes) %>% nrow()
+      paste(num_incidents, "incidents.", num_breaches, "breaches.")
     })
 
     isolate({
@@ -143,7 +146,9 @@ shinyServer(function(input, output) {
       
       
       output$featuresO <- renderUI({
-        selectInput('featureI', "Feature to investigate", colnames(incidents))
+        selectInput('featureI', 
+                    "Feature to investigate", 
+                    setdiff(colnames(incidents), c("timeline.incident.year")))
       })
 
       # Sig Features
