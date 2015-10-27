@@ -1,0 +1,20 @@
+# History files
+.Rhistory
+.Rapp.history
+
+# Example code in package build process
+*-Ex.R
+
+# RStudio files
+.Rproj.user/
+
+# produced vignettes
+vignettes/*.html
+vignettes/*.pdf
+
+# Filter data files as this lives on github
+.RData
+.Rdata
+.Rda
+.rda
+.rdata
