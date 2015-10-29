@@ -67,8 +67,8 @@ getTSenum <- function(data, depth=NULL, table="df", transpose=FALSE) {
     select_('timeline.incident.year', as.name(depth), 'value') %>%
     rename_('enum' = as.name(depth)) %>%
     group_by(timeline.incident.year, enum) %>%
-    summarize(x = sum(value)) %>%
-    mutate(n = sum(x)) %>%
+    summarize(x = sum(value, na.rm=TRUE)) %>%
+    mutate(n = sum(x, na.rm=TRUE)) %>%
     mutate(freq = round(100 * x/n, 2), `count/total` = paste(x, n, sep="/")) %>%
     arrange(desc(timeline.incident.year)) %>% 
     ungroup()
@@ -141,7 +141,7 @@ top_cols <- function(dat, f, L=4, M=6, order.by="timeline.incident.year") {
 #ee <- chunk %>%
 #  filter(!enum %in% topCols) %>%   # remove the top assets
 #  group_by(timeline.incident.year) %>%  # group by the year
-#  summarize(x = sum(x), n = median(n)) %>%  # Sum up the counts of the other assets.  (In theory, all the 'n's are the same, but we'll use the median to be safe.)
+#  summarize(x = sum(x, na.rm=TRUE), n = median(n)) %>%  # Sum up the counts of the other assets.  (In theory, all the 'n's are the same, but we'll use the median to be safe.)
 #  mutate(enum = 'Everything Else', freq = round(100 * x/n, 2), `count/total` = paste(x, n, sep="/"))  # Set all of the enumerations to 'Everything Else', calculate the 'freq' & 'count/total' columns
 #chunk_filtered <- bind_rows(chunk %>% filter(enum %in% topCols), ee) # bind the 'everything else' assets to the top assets
 
