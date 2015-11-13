@@ -5,6 +5,7 @@ options(shiny.maxRequestSize=30*1024^2)
 ### LOAD PACKAGES
 library(MASS)
 library(binom)
+#library(grid)
 library(gridExtra)
 library(data.table)
 library(verisr)
@@ -74,18 +75,19 @@ plotjchunk <- function(chunk) {
       textGrob(paste("No records with", x$enum, "defined.", sep="\n"))
     } else {
       rdif <- maxht-x$height
-      simplejbar(x$df, x$title, plot.margin=unit(c(0,0,rdif,0), "inches"))
+      #simplejbar(x$df, x$title, plot.margin=unit(c(0,0,rdif,0), "inches"))
+      simplejbar(x$df, x$title)
     }
   })
-  if(length(plots)==1) {
-    blank <- textGrob(" ")
-    wth <- list(widths=c(0.05, 1, 0.05))
-    plots <- list(blank, plots[[1]], blank)
-    ret <- do.call(arrangeGrob, c(plots, nrow=1, wth))
-  } else {
-    ret <- do.call(arrangeGrob, c(plots, nrow=1))    
-  }
-  ret
+#  if(length(plots)==1) {
+#    blank <- textGrob(" ")
+#    wth <- list(widths=c(0.05, 1, 0.05))
+#    plots <- list(blank, plots[[1]], blank)
+#    ret <- do.call(arrangeGrob, c(plots, nrow=1, wth))
+#  } else {
+#    ret <- do.call(arrangeGrob, c(plots, nrow=1))    
+#  }
+#  ret
 }
 
 simplejbar <- function(enumdf, title, ...) {
@@ -117,18 +119,21 @@ shinyServer(function(input, output) {
       if (is.null(inFile) | !exists(input$df_name))
         return(NULL)
       
+      df <- get(input$df_name)
+
       load(inFile$datapath)
       
-      incidents <-  get(input$df_name) %>% 
-                    select(timeline.incident.year,
-                           contains("variety"), 
+      incidents <-  df %>% 
+                    select(contains("variety"), 
                            contains("vector"),
                            starts_with("attribute.confidentiality.data_disclosure"), 
                            starts_with("data_discovery"), 
                            starts_with("pattern."),
                            matches("^victim.(industry2.|employee_count|orgsize)"), 
                            matches("timeline.*.unit.*"),
-                           starts_with("victim.country."))
+                           starts_with("victim.country."), 
+                           starts_with("extra."), 
+                           timeline.incident.year)  # adding timeline.incident.year may or may not work
     }
     
     output$incidentCount <- renderText({
@@ -148,15 +153,28 @@ shinyServer(function(input, output) {
       
       output$featuresO <- renderUI({
         selectInput('featureI', 
-                    "Feature to investigate", 
-                    setdiff(colnames(incidents), c("timeline.incident.year")))
+                    "Feature or Enum to Investigate", 
+                    colnames(incidents))
       })
 
+      # if the feature is not logical, provide it's unique values as a pulldown, 
+      output$enumValO <- renderUI({
+        if (is.logical(df[[input$featureI]])) {
+          f2 <- c(strsplit(input$featureI, "[.](?!.*[.])", perl=T)[[1]][2])
+          logical_val <- "TRUE"
+        } else {
+          logical_val <- "FALSE"
+          f2 <- unique(df[[input$featureI]])
+        }
+        selectInput('feature2I',
+                    paste("Feature of Enumeration to Investigate"),
+                    f2) 
+      })
+      
       # Sig Features
       output$sigFeaturesO <- renderUI({
-        sf <- chunk %>% select(-timeline.incident.year) %>% sigFeatures(input$featureI)
-        x_val <- strsplit(input$featureI, "[.](?!.*[.])", perl=T)[[1]][2]
-        viz <- sf[x_val, ] %>% melt() %>% add_rownames() %>% arrange(desc(value))
+        sf <- chunk %>% sigFeatures(input$featureI)
+        viz <- sf[input$feature2I, ] %>% melt() %>% add_rownames() %>% arrange(desc(value))
         selectInput("sigFeatureI", "Choose a significant feature to enumerate.", paste0(viz$rowname, ", ", round(viz$value, 2)))
       })
     

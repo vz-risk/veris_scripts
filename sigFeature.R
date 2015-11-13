@@ -103,25 +103,51 @@ sigFeatures <- function(df, group_feature) {
       group <- sapply(group, function(x) {ret <- strsplit(x, "[.](?!.*[.])", perl=T); ret[[1]][2]})
       # get the number of true features per row
       l <- sapply(df[[chunk_group_feature]], length)
+      # l <= 0 won't work
+      if (length(l) <= 1) {
+        stop(paste("The feature to analyze,", chunk_group_feature, "has", l, "values.  It must have at least 2 values."))
+      }
       # duplicate each row by the number of true features
       df <- df[rep.int(seq(nrow(df)), times=l) ,]
       # replace the list of features per row with a single feature per row
       df[[chunk_group_feature]] <- group
 
     } else {
+      if (length(unique(df[[group_feature]])) <= 1) {
+        stop(paste("The feature to analyze,", group_feature, "has", l, "values.  It must have at least 2 values."))
+      }
+      
       chunk_group_feature <- group_feature
       # Get the count of records by group_feature to divide by
       group_feature_sums <- df %>% group_by_(chunk_group_feature) %>% summarize(count=n()) %>% as.data.frame()
     }
-
   
+    # identify the logical columns to be gathered
+    logical_columns <- names(df)[sapply(df, is.logical)]
+  
+    ### Gather the Logicals ###
     # gather to group_feature, key, value sets
-    chunk_gather <- df %>% gather_("enum", "value", setdiff(colnames(df), chunk_group_feature)) %>% filter(!is.na(value)) %>% filter(value)
+    chunk_gather <- df[ , colnames(df) %in% c(logical_columns, chunk_group_feature), with=F] %>% 
+      gather_("enum", "value", setdiff(logical_columns, chunk_group_feature)) %>% 
+      filter(!is.na(value)) %>% 
+      filter(value)
     # get to factors rather than logicals
     chunk_gather <- chunk_gather %>% select(-value) %>% separate(enum, c("enum", "value"), sep = "[.](?!.*[.])", extra="merge")  
     # Add the counts back in
     chunk_gather$sum <- lookup(chunk_gather[[chunk_group_feature]], as.data.frame(group_feature_sums))
-
+    ### End Gather the Logicals ###
+    ### Gather the Factors ###
+    # illogical..., as in character, factor, numeric columns.  get it?! GET IT?!!
+    illogical_chunk_gather <- df[ , !colnames(df) %in% setdiff(logical_columns, chunk_group_feature), with=F] %>% 
+      gather_("enum", "value", setdiff(colnames(df), c(logical_columns, chunk_group_feature)))
+    # Add the counts back in
+    illogical_chunk_gather$sum <- lookup(illogical_chunk_gather[[chunk_group_feature]], as.data.frame(group_feature_sums))
+    # Make sure value is a character vector
+    illogical_chunk_gather$value <- as.character(illogical_chunk_gather$value)
+    ### End Gather the Factors ###
+    # Bind the two
+    chunk_gather <- rbind(chunk_gather, illogical_chunk_gather)
+    
     # build a results matrix
     results <- matrix(data=0, 
                       nrow=length(unique(chunk_gather[[chunk_group_feature]])), 

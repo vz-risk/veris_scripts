@@ -1,4 +1,4 @@
-library(shiny)
+#library(shiny)
 
 # Define UI for application that draws a histogram
 
@@ -15,6 +15,7 @@ fluidPage(
              actionButton('submit', 'Analyze'),
              uiOutput("featuresO"),
              uiOutput("sigEnumO"),
+             uiOutput("enumValO"),
              uiOutput("sigFeaturesO")
            )
     ),
