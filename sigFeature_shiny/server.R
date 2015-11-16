@@ -5,7 +5,7 @@ options(shiny.maxRequestSize=30*1024^2)
 ### LOAD PACKAGES
 library(MASS)
 library(binom)
-#library(grid)
+library(grid)
 library(gridExtra)
 library(data.table)
 library(verisr)
@@ -79,15 +79,17 @@ plotjchunk <- function(chunk) {
       simplejbar(x$df, x$title)
     }
   })
-#  if(length(plots)==1) {
-#    blank <- textGrob(" ")
-#    wth <- list(widths=c(0.05, 1, 0.05))
-#    plots <- list(blank, plots[[1]], blank)
-#    ret <- do.call(arrangeGrob, c(plots, nrow=1, wth))
-#  } else {
-#    ret <- do.call(arrangeGrob, c(plots, nrow=1))    
-#  }
-#  ret
+  if(length(plots)==1) {
+    blank <- textGrob(" ")
+    wth <- list(widths=c(0.05, 1, 0.05))
+    plots <- list(blank, plots[[1]], blank)
+    #ret <- do.call(arrangeGrob, c(plots, nrow=1, wth))
+    ret <- do.call(grid.arrange, c(plots, nrow=1, wth))
+  } else {
+    #ret <- do.call(arrangeGrob, c(plots, nrow=1))   
+    ret <- do.call(grid.arrange, c(plots, nrow=1))   
+  }
+  ret
 }
 
 simplejbar <- function(enumdf, title, ...) {
@@ -183,8 +185,13 @@ shinyServer(function(input, output) {
         sigFeature <- c(strsplit(input$sigFeatureI, ",")[[1]][1])
         
         # Try doing it the Jay way
-        chunk <- chunk[chunk[[input$featureI]] == TRUE, ] %>%  
-          setjenum(sigFeature)
+        if (is.logical(chunk[[input$featureI]])) {
+          chunk <- chunk[chunk[[input$featureI]] == TRUE, ] %>%  
+            setjenum(sigFeature)
+        } else {
+          chunk <- chunk[chunk[[input$featureI]] == input$feature2I] %>%
+            setjenum(sigFeature)
+        }
         print(plotjchunk(chunk))
       })
       
@@ -193,8 +200,13 @@ shinyServer(function(input, output) {
         sigFeature <- c(strsplit(input$sigFeatureI, ",")[[1]][1])
         
         # Try doing it the Jay way
-        chunk <- chunk[chunk[[input$featureI]] == FALSE, ] %>%  
-          setjenum(sigFeature)
+        if (is.logical(chunk[[input$featureI]])) {
+          chunk <- chunk[chunk[[input$featureI]] == FALSE, ] %>%  
+            setjenum(sigFeature)
+        } else {
+          chunk <- chunk[chunk[[input$featureI]] != input$feature2I] %>%
+            setjenum(sigFeature)
+        }
         print(plotjchunk(chunk))
       })  
       

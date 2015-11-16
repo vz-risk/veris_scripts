@@ -16,7 +16,8 @@ fluidPage(
              uiOutput("featuresO"),
              uiOutput("sigEnumO"),
              uiOutput("enumValO"),
-             uiOutput("sigFeaturesO")
+             uiOutput("sigFeaturesO"),
+             uiOutput("DEBUG")
            )
     ),
     #      mainPanel(
