@@ -1,5 +1,8 @@
 'use strict';
 
+//set default values
+var configLoc = "./_checkValidity.cfg"
+
 //var fs = require('fs');
 var fs = require('graceful-fs')
 var ini = require('ini');
@@ -31,6 +34,8 @@ var args = parser.parseArgs();
 if (args.config !== null) {
   // read the configuration file if it is present
   var config = ini.parse(fs.readFileSync(args.config, 'utf8'));
+//} else {
+//  var config = ini.parse(fs.readFileSync(configLoc, 'utf8'));
 }
 
 // options specified at the command line trump whatever is in the

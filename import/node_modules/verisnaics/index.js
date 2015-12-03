@@ -6,8 +6,7 @@
 * @return {Boolean}
 */
 
-var fs = require('fs');
-var obj = JSON.parse(fs.readFileSync('codes.json', 'utf8'));
+var obj = require('./codes.json');
 
 module.exports = {
   validateNAICS: function(inNAICS) {
