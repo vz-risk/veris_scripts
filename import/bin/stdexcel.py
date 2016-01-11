@@ -6,6 +6,7 @@ import sys
 import argparse
 import os
 import uuid
+import hashlib # convert incident_id to UUID
 import copy
 import logging
 import re
@@ -22,7 +23,8 @@ cfg = {
     'version':"1.3",
     'countryfile':'all.json',
     'output': os.getcwd(),
-    'quiet': False
+    'quiet': False,
+    'repositories': ""
 }
 
 def reqSchema(v, base="", mykeylist={}):
@@ -644,7 +646,10 @@ def convertCSV(incident, cfg=cfg):
     out['schema_version'] = cfg["version"]
     if incident.has_key("incident_id"):
         if len(incident['incident_id']):
-            out['incident_id'] = incident['incident_id']
+#            out['incident_id'] = incident['incident_id']
+            # Changing incident_id to UUID to prevent de-anonymiziation of incidents
+            m = hashlib.md5(incident["incident_id"])
+            incident["incident_id"] = str(uuid.UUID(bytes=m.digest())).upper()
         else:
             out['incident_id'] = str(uuid.uuid4()).upper()
     else:
@@ -930,8 +935,16 @@ if __name__ == '__main__':
     if 'quiet' in args and args['quiet'] == True:
         _ = cfg.pop('output')
 
-    logging.debug(args)
-    logging.debug(cfg)
+    # if source missing, try and guess it from directory
+    if 'source' not in cfg or not cfg['source']:
+        cfg['source'] = cfg['input'].split("/")[-2].lower()
+        cfg['source'] = ''.join(e for e in cfg['source'] if e.isalnum())
+        logging.warning("Source not defined.  Using the directory of the input file {0} instead.".format(cfg['source']))
+
+    # Quick test to replace any placeholders accidentally left in the config
+    for k, v in cfg.iteritems():
+        if k not in  ["repositories", "source"] and type(v) == str:
+            cfg[k] = v.format(repositories=cfg["repositories"], partner_name=cfg["source"])
 
     logging.basicConfig(level=logging_remap[cfg["log_level"]],
           format='%(asctime)19s %(levelname)8s %(message)s', datefmt='%m/%d/%Y %H:%M:%S')
@@ -939,12 +952,16 @@ if __name__ == '__main__':
         logging.FileHandler(cfg["log_file"])
     # format='%(asctime)s %(levelname)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
 
+    logging.debug(args)
+    logging.debug(cfg)
+
     try:
         # Added to file read to catch multiple columns with same name which causes second column to overwrite first. - GDB
         file_handle = open(cfg["input"], 'rU')
         csv_reader = csv.reader(file_handle)
         l = csv_reader.next()
         if len(l) > len(set(l)):
+            logging.error(l)
             raise KeyError("Input file has multiple columns of the same name.  Please create unique columns and rerun.")
             exit(1)
         else:
