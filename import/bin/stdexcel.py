@@ -889,7 +889,7 @@ def main(infile, cfg, reqfields, sfields, jenums, jschema):
 iid = ""  # setting global
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Convert Standard Excel (csv) format to VERIS 1.3 schema-compatible JSON files")
-    parser.add_argument("--input", help="The csv file containing the data")
+    parser.add_argument("-i", "--input", help="The csv file containing the data")
     parser.add_argument("-l","--log_level",choices=["critical","warning","info","debug"], help="Minimum logging level to display")
     parser.add_argument('--log_file', help='Location of log file')
     parser.add_argument("-s","--schemafile", help="The JSON schema file")
