@@ -843,7 +843,7 @@ def main(infile, cfg, reqfields, sfields, jenums, jschema):
     for f in infile.fieldnames:
         if f not in sfields:
             if f != "repeat":
-                logging.warning("column will not be used: %s", f)
+                logging.warning("column will not be used: %s. May be inaccurate for 'plus' columns.", f)
     if 'plus.analyst' not in infile.fieldnames:
         logging.warning("the optional plus.analyst field is not found in the source document")
     if 'source_id' not in infile.fieldnames:
@@ -901,7 +901,7 @@ if __name__ == '__main__':
     parser.add_argument('--conf', help='The location of the config file', default="./_checkValidity.cfg")
     parser.add_argument('--year', help='The DBIR year to assign tot he records.')
     parser.add_argument('--countryfile', help='The json file holdering the country mapping.')
-    parser.add_argument('--source', help="Source_id to use for the incidents. Partner pseudonym."))
+    parser.add_argument('--source', help="Source_id to use for the incidents. Partner pseudonym.")
     output_group = parser.add_mutually_exclusive_group()
     output_group.add_argument("-o", "--output", help="directory where json files will be written")
     output_group.add_argument("-q", "--quiet", help="suppress the writing of json files.", action='store_true')
