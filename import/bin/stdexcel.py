@@ -424,6 +424,8 @@ def checkEnum(incident, schema, country_region, cfg=cfg):
     if 'dbir_year' not in incident['plus'] and cfg['vcdb'] != True:
         logging.warning("{0}: missing plus.dbir_year, auto-filled {1}".format(iid, cfg["year"]))
         incident['plus']['dbir_year'] = cfg["year"]
+    if 'source' in cfg:
+        incident['source_id'] = cfg['source']
     mydate = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
     if 'created' not in incident['plus']:
         logging.info("%s: auto-filling now() for plus.created", iid)
@@ -899,6 +901,7 @@ if __name__ == '__main__':
     parser.add_argument('--conf', help='The location of the config file', default="./_checkValidity.cfg")
     parser.add_argument('--year', help='The DBIR year to assign tot he records.')
     parser.add_argument('--countryfile', help='The json file holdering the country mapping.')
+    parser.add_argument('--source', help="Source_id to use for the incidents. Partner pseudonym."))
     output_group = parser.add_mutually_exclusive_group()
     output_group.add_argument("-o", "--output", help="directory where json files will be written")
     output_group.add_argument("-q", "--quiet", help="suppress the writing of json files.", action='store_true')
