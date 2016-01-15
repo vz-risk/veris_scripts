@@ -32,11 +32,15 @@ year2year <- function(df, current_year=NULL, last_year=NULL, filter=TRUE) {
   }
  
   # Year based on dbir year if possible
-  if ("plus.dbir_year" %in% colnames(df)) {
+  if ("plus.dbir_year" %in% colnames(df) & as.numeric(current_year) >= 2009) {
     current_df <- df %>% filter(plus.dbir_year == as.character(current_year))
   } else {
     current_df <- df %>% filter(timeline.incident.year == as.character(as.numeric(current_year) - 1))
   }
+  
+if (nrow(current_df) == 0) {
+  throw("No data for current year!")
+}
   
 #  if ("plus.dbir_year" %in% colnames(df)) {
 #    last_df <- df %>% filter(plus.dbir_year == last_year)
@@ -46,6 +50,10 @@ year2year <- function(df, current_year=NULL, last_year=NULL, filter=TRUE) {
   # well, since no-one coded plus.dbir_year in the 2014 data, we'll use incident year
   last_df <- df %>% filter(timeline.incident.year == as.character(as.numeric(last_year) - 1))
 
+  if (nrow(last_df) == 0) {
+    throw("No data for last year!")
+  }
+  
   if ("plus.dbir_year" %in% colnames(df)) {  
     current_df <- current_df %>% select(-timeline.incident.year, -plus.dbir_year)
     last_df <- last_df %>% select(-timeline.incident.year, -plus.dbir_year)
