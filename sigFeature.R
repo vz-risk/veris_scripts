@@ -122,7 +122,7 @@ sigFeatures <- function(df, group_feature) {
       group_feature_sums <- df %>% group_by_(chunk_group_feature) %>% summarize(count=n()) %>% as.data.frame()
     }
   
-    # identify the logical and columns to be gathered
+    # identify the logical and illogical columns to be gathered
     logical_columns <- names(df)[sapply(df, is.logical)]
     illogical_columns <- names(df)[sapply(df, function(x) {!is.logical(x)})]
   
