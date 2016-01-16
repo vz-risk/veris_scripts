@@ -129,7 +129,8 @@ sigFeatures <- function(df, group_feature) {
     ### Gather the Logicals ###
     if (length(logical_columns) > 0) {
       # gather to group_feature, key, value sets
-      chunk_gather <- df[ , colnames(df) %in% c(logical_columns, chunk_group_feature), with=F] %>% 
+      #chunk_gather <- df[ , colnames(df) %in% c(logical_columns, chunk_group_feature), with=F] %>% 
+      chunk_gather <- df[ , colnames(df) %in% c(logical_columns, chunk_group_feature)] %>% 
         gather_("enum", "value", setdiff(logical_columns, chunk_group_feature)) %>% 
         filter(!is.na(value)) %>% 
         filter(value)
@@ -142,7 +143,8 @@ sigFeatures <- function(df, group_feature) {
     ### Gather the Factors ###
     if (length(illogical_columns) > 1) {
       # illogical..., as in character, factor, numeric columns.  get it?! GET IT?!!
-      illogical_chunk_gather <- df[ , !colnames(df) %in% setdiff(logical_columns, chunk_group_feature), with=F] %>% 
+      #illogical_chunk_gather <- df[ , !colnames(df) %in% setdiff(logical_columns, chunk_group_feature), with=F] %>% 
+      illogical_chunk_gather <- df[ , !colnames(df) %in% setdiff(logical_columns, chunk_group_feature)] %>% 
         gather_("enum", "value", setdiff(colnames(df), c(logical_columns, chunk_group_feature)))
       # Add the counts back in
       illogical_chunk_gather$sum <- lookup(illogical_chunk_gather[[chunk_group_feature]], as.data.frame(group_feature_sums))
@@ -197,13 +199,13 @@ sigFeatures <- function(df, group_feature) {
                 g <- feature_chunk[as.character(group), ]
                 
                 if (nrow(feature_chunk) > 2) {
-                  not_g <- colSums(feature_chunk[setdiff(rownames(feature_chunk), as.character(group)), ])
+                  not_g <- colSums(feature_chunk[setdiff(rownames(feature_chunk), as.character(group)), ]) %>% as.vector()
                 } else {
-                  not_g <- feature_chunk[setdiff(rownames(feature_chunk), as.character(group)), ]
+                  not_g <- feature_chunk[setdiff(rownames(feature_chunk), as.character(group)), ] %>% as.vector()
                 }
 
                 # checks if not_g is all 0's.  if it is, chi2 will fail
-                if (unique(not_g) != 0) {
+                if ((length(not_g) != 0) && (unique(not_g) != 0)) {
                     results[as.character(group), feature] <- 0.5 * chi2.plugin(g, not_g)
                 } else {
                   results[as.character(group), feature] <- NaN
