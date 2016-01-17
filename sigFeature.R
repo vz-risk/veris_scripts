@@ -99,10 +99,12 @@ sigFeatures <- function(df, group_feature) {
       group_feature_sums[[1]] <- sapply(group_feature_sums[[1]], function(x) {x[2]})
             
       # filter where the group feature doesn't exist in the data
+      # This is because those rows could implicitly have any value for this enumeration.
+      # NOTE: This should leave any row with the major enumeration.  (e.g. if feature is action.hacking.variety.DoS, all action.*.variety.* should be included)
+      # Doing so will cause issues later on in the row duplication block immediately below.
       group_feature_rows <- df %>% select(starts_with(chunk_group_feature)) %>% apply(MARGIN=1, any)
-      #df <- df[group_feature_rows,]  # This prevents rows w/o the group feature (whether the chosen enumeration or not) from being evalutated. Removing and fixing.  -GDB 11/16
-      #df_group_feature <- df[group_feature_rows, ]
-      #df_not_group_feature <- df[!group_feature_rows, ]
+      #df <- df[group_feature_rows,]  # This line was causing errors and, anyway `df <- df[rep.int(seq(nrow(df)), times=l) ,]` below accomplishes the same thing
+
             
       # get a column to represent the combination of the group_feature function
       # create a feature with a list of the group_feature that are trust
