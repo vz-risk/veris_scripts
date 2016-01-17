@@ -73,12 +73,20 @@ DESCRIPTION <- "identify the features which make a group withen an enumeration o
 #'   2013    3     0       1      0  4     0       5       3     0     0
 #'   2014    4     1       0      0 11     0       0       1     1     0
 sigFeatures <- function(df, group_feature) {
-    require(qdapTools)
-    require(tidyr)
-    require(reshape2)
-    require(entropy)
-    require(dplyr)
+  require(qdapTools)
+  require(tidyr)
+  require(reshape2)
+  require(entropy)
+  require(dplyr)
 
+  # Raise errors basedon df size
+  if (nrow(df[df[[group_feature]], ]) == 0) {
+    stop(paste0(group_feature, " not present in df."))
+  }
+  if (nrow(df[!df[[group_feature]], ]) == 0) {
+    stop(paste0("No rows exist where ", group_feature, " is not present in df so no rows to compare to."))
+  } else {
+  
     # if the group_feature is logical, it needs to be part of the chunk_gather
     if (class(df[[group_feature]]) == "logical")  {
       chunk_group_feature <- strsplit(group_feature, "[.](?!.*[.])", perl=T)[[1]][1]
@@ -92,8 +100,10 @@ sigFeatures <- function(df, group_feature) {
             
       # filter where the group feature doesn't exist in the data
       group_feature_rows <- df %>% select(starts_with(chunk_group_feature)) %>% apply(MARGIN=1, any)
-      df <- df[group_feature_rows,]
-      
+      #df <- df[group_feature_rows,]  # This prevents rows w/o the group feature (whether the chosen enumeration or not) from being evalutated. Removing and fixing.  -GDB 11/16
+      #df_group_feature <- df[group_feature_rows, ]
+      #df_not_group_feature <- df[!group_feature_rows, ]
+            
       # get a column to represent the combination of the group_feature function
       # create a feature with a list of the group_feature that are trust
       df[[chunk_group_feature]] <- df %>% select(starts_with(chunk_group_feature)) %>% apply(MARGIN=1, function(x) {names(x[x==TRUE])})
@@ -215,5 +225,6 @@ sigFeatures <- function(df, group_feature) {
     }
 
     results
+  }
 }
 
