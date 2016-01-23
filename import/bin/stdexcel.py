@@ -651,7 +651,7 @@ def convertCSV(incident, cfg=cfg):
 #            out['incident_id'] = incident['incident_id']
             # Changing incident_id to UUID to prevent de-anonymiziation of incidents
             m = hashlib.md5(incident["incident_id"])
-            incident["incident_id"] = str(uuid.UUID(bytes=m.digest())).upper()
+            out["incident_id"] = str(uuid.UUID(bytes=m.digest())).upper()
         else:
             out['incident_id'] = str(uuid.uuid4()).upper()
     else:

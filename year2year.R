@@ -7,7 +7,7 @@ DESCRIPTION <- "find the enumeration that changed the most significantly between
 #' @param current_year The year of interest. Defaults to this year.
 #' @param last_year The year to compare to. Defaults to last year.
 #' @param filter Bool.  If TRUE, only 5th & 95th percentile results in at least 1/1000th of the records will be shown
-#' @return A data frame of the difference and ratio of the percentage of each enumeration in \code{current_year} vs \code{last_year} as well as the count of the enumeration in the current_year.
+#' @return An ordered data frame of the difference and ratio of the percentage of each enumeration in \code{current_year} vs \code{last_year} as well as the count of the enumeration in the current_year.
 #' @examples
 #'   incidents <- vz %>% select(timeline.incident.year,
 #'                              contains("variety"), 
