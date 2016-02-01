@@ -120,13 +120,17 @@ shinyServer(function(input, output) {
       inFile <- input$file1
       if (is.null(inFile) | !exists(input$df_name))
         return(NULL)
-      
-      df <- get(input$df_name)
 
       load(inFile$datapath)
       
+      df <- get(input$df_name)
+      
       incidents <-  df %>% 
-                    select(contains("variety"), 
+                    select(starts_with("asset.variety."),
+#                           matches("^action[.][A-Z]"),
+#                           matches("^attribute[.][A-Z]"),
+#                           matches("^actor[.][A-Z]"),
+                           contains("variety"), 
                            contains("vector"),
                            starts_with("attribute.confidentiality.data_disclosure"), 
                            starts_with("data_discovery"), 
@@ -134,8 +138,10 @@ shinyServer(function(input, output) {
                            matches("^victim.(industry2.|employee_count|orgsize)"), 
                            matches("timeline.*.unit.*"),
                            starts_with("victim.country."), 
-                           starts_with("extra."), 
-                           timeline.incident.year)  # adding timeline.incident.year may or may not work
+                           starts_with("extra."),
+                           starts_with("targeted"),
+                           timeline.incident.year,
+                           source_id)
     }
     
     output$incidentCount <- renderText({

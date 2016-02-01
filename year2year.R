@@ -39,7 +39,7 @@ year2year <- function(df, current_year=NULL, last_year=NULL, filter=TRUE) {
   }
   
 if (nrow(current_df) == 0) {
-  throw("No data for current year!")
+  stop("No data for current year!")
 }
   
 #  if ("plus.dbir_year" %in% colnames(df)) {

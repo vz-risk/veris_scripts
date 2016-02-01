@@ -142,7 +142,8 @@ sigFeatures <- function(df, group_feature) {
     if (length(logical_columns) > 0) {
       # gather to group_feature, key, value sets
       #chunk_gather <- df[ , colnames(df) %in% c(logical_columns, chunk_group_feature), with=F] %>% 
-      chunk_gather <- df[ , colnames(df) %in% c(logical_columns, chunk_group_feature)] %>% 
+      #chunk_gather <- df[ , colnames(df) %in% c(logical_columns, chunk_group_feature)] %>%
+      chunk_gather <- df %>% dplyr::select(one_of(c(logical_columns, chunk_group_feature))) %>%
         gather_("enum", "value", setdiff(logical_columns, chunk_group_feature)) %>% 
         filter(!is.na(value)) %>% 
         filter(value)
@@ -156,7 +157,8 @@ sigFeatures <- function(df, group_feature) {
     if (length(illogical_columns) > 1) {
       # illogical..., as in character, factor, numeric columns.  get it?! GET IT?!!
       #illogical_chunk_gather <- df[ , !colnames(df) %in% setdiff(logical_columns, chunk_group_feature), with=F] %>% 
-      illogical_chunk_gather <- df[ , !colnames(df) %in% setdiff(logical_columns, chunk_group_feature)] %>% 
+      #illogical_chunk_gather <- df[ , !colnames(df) %in% setdiff(logical_columns, chunk_group_feature)] %>% 
+      illogical_chunk_gather <- df %>% dplyr::select(one_of(setdiff(names(.), setdiff(logical_columns, chunk_group_feature)))) %>% 
         gather_("enum", "value", setdiff(colnames(df), c(logical_columns, chunk_group_feature)))
       # Add the counts back in
       illogical_chunk_gather$sum <- lookup(illogical_chunk_gather[[chunk_group_feature]], as.data.frame(group_feature_sums))
