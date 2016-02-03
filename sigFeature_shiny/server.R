@@ -127,9 +127,9 @@ shinyServer(function(input, output) {
       
       incidents <-  df %>% 
                     select(starts_with("asset.variety."),
-#                           matches("^action[.][A-Z]"),
-#                           matches("^attribute[.][A-Z]"),
-#                           matches("^actor[.][A-Z]"),
+                           matches("^action[.][A-Z|a-z]+$"),
+                           matches("^attribute[.][A-Z|a-z]+$"),
+                           matches("^actor[.][A-Z|a-z]+$"),
                            contains("variety"), 
                            contains("vector"),
                            starts_with("attribute.confidentiality.data_disclosure"), 

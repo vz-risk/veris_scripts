@@ -15,7 +15,7 @@ string.counter<-function(strings, pattern){
 
 #. getTSenum takes a data frame and returns either a data frame of c('timeline.incident.year', 'enum', 'x', 'n', 'freq', 'count/total') a matrix of 'x' or 'freq' for enum vs timeline.incident.year
 #'
-#' @param data Verisr type object
+#' @param data Verisr type object subsetted to the relevant columns.
 #' @param depth Controls at what depth to cut off enum sections.  For example, if enums are action.hacking.variety.C2, setting depth=2 will return enums of variety.C2 (the last 2). By default, it attempts to return the last section.
 #' @param table 'df', 'x', or 'freq'. defaults to 'df'.  'df' returns a dataframe of names c('timeline.incident.year', 'enum', 'x', 'n', 'freq', 'count/total'). 'x' returns a matrix of enum vs timeline.incident.year with value of 'x' with enumerations as rows.  'freq' returns a matrix of enum vs timeline.incident.year with value of 'freq' with enumerations as rows.
 #' @param tarnspose logical. default FALSE. When TRUE, table='x' and table='freq' returns timeline.incidnet.year as rows and enumerations as columns.
@@ -67,11 +67,20 @@ getTSenum <- function(data, depth=NULL, table="df", transpose=FALSE) {
     select_('timeline.incident.year', as.name(depth), 'value') %>%
     rename_('enum' = as.name(depth)) %>%
     group_by(timeline.incident.year, enum) %>%
-    summarize(x = sum(value, na.rm=TRUE)) %>%
+    summarize(x = sum(value, na.rm=TRUE)) %>% 
+    ungroup()
+  # "Unknown" effectively equates to "not measured" and, as it is neither a positive or negative measurement, should not be included
+  temp_unk <- temp %>% 
+    filter(grepl("[U|u]nknown$", enum)) %>% 
+    mutate(n=NA, freq=NA, `count/total`=x)
+  temp <- temp %>%
+    filter(!grepl("[U|u]nknown$", enum)) %>% 
+    group_by(timeline.incident.year) %>%
     mutate(n = sum(x, na.rm=TRUE)) %>%
     mutate(freq = round(100 * x/n, 2), `count/total` = paste(x, n, sep="/")) %>%
     arrange(desc(timeline.incident.year)) %>% 
     ungroup()
+  temp <- rbind(temp, temp_unk)
   
   if (table == "count") {
     temp <- temp %>% acast(enum~timeline.incident.year, value.var="count/total")
