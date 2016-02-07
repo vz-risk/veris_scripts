@@ -424,7 +424,7 @@ def checkEnum(incident, schema, country_region, cfg=cfg):
     if 'dbir_year' not in incident['plus'] and cfg['vcdb'] != True:
         logging.warning("{0}: missing plus.dbir_year, auto-filled {1}".format(iid, cfg["year"]))
         incident['plus']['dbir_year'] = cfg["year"]
-    if 'source' in cfg:
+    if ('source_id' not in incident or cfg["force_analyst"]) and 'source' in cfg:
         incident['source_id'] = cfg['source']
     mydate = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
     if 'created' not in incident['plus']:
@@ -853,7 +853,11 @@ def main(infile, cfg, reqfields, sfields, jenums, jschema):
     for incident in infile:
         row += 1
         # have to look for white-space only and remove it
-        incident = { x:incident[x].strip() for x in incident }
+        try:
+            incident = { x:incident[x].strip() for x in incident }
+        except AttributeError as e:
+            logging.error("Error removing white space from feature {0} on row {1}.".format(x, row))
+            raise e
 
         if 'incident_id' in incident:
             iid = incident['incident_id']
@@ -902,6 +906,7 @@ if __name__ == '__main__':
     parser.add_argument('--year', help='The DBIR year to assign tot he records.')
     parser.add_argument('--countryfile', help='The json file holdering the country mapping.')
     parser.add_argument('--source', help="Source_id to use for the incidents. Partner pseudonym.")
+    parser.add_argument("-f", "--force_analyst", help="Override default analyst with --analyst.", action='store_true')
     output_group = parser.add_mutually_exclusive_group()
     output_group.add_argument("-o", "--output", help="directory where json files will be written")
     output_group.add_argument("-q", "--quiet", help="suppress the writing of json files.", action='store_true')
