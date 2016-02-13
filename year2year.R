@@ -51,7 +51,7 @@ if (nrow(current_df) == 0) {
   last_df <- df %>% filter(timeline.incident.year == as.character(as.numeric(last_year) - 1))
 
   if (nrow(last_df) == 0) {
-    throw("No data for last year!")
+    stop("No data for last year!")
   }
   
   if ("plus.dbir_year" %in% colnames(df)) {  
