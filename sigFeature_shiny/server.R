@@ -18,10 +18,65 @@ library(scales)
 source(paste0(veris_scripts, "sigFeature.R"))
 
 ### LOAD FUNCTIONS
+getenumCI <- function(veris, enum, na = NULL, short_names=TRUE, ci.method=c(), ci.level=0.95, ...) {
+  library(MultinomialCI)
+  library(binom)
+  library(stringr)
+  
+  df <- as.data.frame(veris)
+  
+  df <- df[, grepl(paste0("^",enum,"[.][A-Za-z].*$"), names(df))]
+  df <- df[, !grepl(".Unknown$", names(df))]
+  
+  if (is.null(na) & any(grep("[.]NA$", names(df)))) { stop("'na' must be specified if any column names end in .NA")}
+  
+  if (!is.null(na)) {
+    if (na == FALSE) {
+      df <- df[, !grepl(".NA$", names(df)), ]
+    }
+  }
+  
+  # number of records
+  n <- nrow(df[rowSums(df) > 0, ])
+  # count of each enumeration
+  v <- colSums(df)  # used instead of a loop or plyr::count to compute x
+  # each enumeration and number or records - the count for use in multinomal Confidence interval
+  chunk <- data.frame(enum=names(v), x=v, n=rep(n, length(v))-v)
+  # apply the multinomial confidence interval to the first (correct) value and ignore the 2nd one which is just there to balance it
+  # (I know I'm doing each multinomial separately.  Testing showed that changing other rows (other than the sum of x) doesn't change anything)
+  # bind enums, x, n, freq, lower and upper confidence intervals
+  if ("multinomial" %in% c(ci.method)) {
+    chunk <- data.frame(names(v), v, rep(n, length(x)), v/n, t(apply(chunk, MARGIN=1, function(x) {multinomialCI(as.numeric(x), ci)[1, ] })))
+    #chunk <- bind_cols(chunk, t(apply(chunk, MARGIN=1, function(x) {multinomialCI(as.numeric(x), ci.level)[1, ] })))
+    # remove the multinomial method before the next step
+    ci.method <- c(ci.method)[which(ci.method=="multinomial")]
+    names(chunk) <- c("enum", "x", "n", "freq", "lower", "upper")
+  } else {
+    chunk <- data.frame(enum=names(v), x=v, n=rep(n, length(v)), freq=v/n)
+  }
+  if (length(ci.method) > 0) {
+    chunk <- bind_cols(chunk, binom.confint(chunk$x, chunk$n, conf.level=ci.level, methods=ci.method))
+  }
+  # name the columns  
+  #names(chunk) <- c("enum", "x", "n", "freq", "lower", "upper")
+  # replace row numbers
+  rownames(chunk) <- seq(length=nrow(chunk))
+  
+  # if short names, only use the bit of the enum name after the last period
+  if (short_names) {
+    chunk$enum <- str_match(chunk$enum, "[^.]+$")
+  }
+  
+  # return
+  chunk[order(-chunk$x), ]
+}
+
 setjenum <- function(veris, enums, trim=10, unknowns=c("Unknown", " - Other")) { 
   ## cycle through each enum passed in
   chunk <- lapply(seq_along(enums), function(i) {
-    thisenum <- getenum(veris, enums[i], add.freq=F, add.n=T, fillzero=F, exclusive=T)
+    thisenum <- getenumCI(veris, enums[i], na=TRUE)
+    thisenum <- thisenum[, 1:3]
+#    thisenum <- getenum(veris, enums[i], add.freq=F, add.n=T, fillzero=F, exclusive=T)
     if(nrow(thisenum)) {
       ## look for unknowns
       unknowns <- c("Unknown| - Other")
@@ -133,15 +188,17 @@ shinyServer(function(input, output) {
                            contains("variety"), 
                            contains("vector"),
                            starts_with("attribute.confidentiality.data_disclosure"), 
-                           starts_with("data_discovery"), 
+#                           starts_with("data_discovery"), 
                            starts_with("pattern."),
-                           matches("^victim.(industry2.|employee_count|orgsize)"), 
+                           matches("^victim.(industry2.|employee_count|orgsize).*"), 
                            matches("timeline.*.unit.*"),
                            starts_with("victim.country."), 
-                           starts_with("extra."),
+#                           starts_with("extra."),
                            starts_with("targeted"),
                            timeline.incident.year,
-                           source_id)
+                           plus.dbir_year,
+                           source_id
+                           )
     }
     
     output$incidentCount <- renderText({
@@ -157,8 +214,11 @@ shinyServer(function(input, output) {
       }  else {
         chunk <- incidents
       }
-      
-      
+
+      if (input$current_year) {
+        chunk <- chunk %>% filter(plus.dbir_year == as.integer(substr(Sys.Date(), 1, 4)))
+      }
+
       output$featuresO <- renderUI({
         selectInput('featureI', 
                     "Feature or Enum to Investigate", 

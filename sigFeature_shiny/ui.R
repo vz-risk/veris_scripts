@@ -11,6 +11,7 @@ fluidPage(
              fileInput('file1', 'Upload a Rdata file', accept = c('.Rda', '.Rdata')),
              textOutput('incidentCount'),
              checkboxInput("breaches", "Only Breaches", value = FALSE, width = NULL),
+             checkboxInput("current_year", "Current DBIR Year", value=TRUE, width = NULL),
              textInput('df_name', "Name of the dataframe in the Rdata file", value="e.g. 'vcdb' or 'vz'"),
              actionButton('submit', 'Analyze'),
              uiOutput("featuresO"),
