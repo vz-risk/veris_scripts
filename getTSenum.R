@@ -63,7 +63,7 @@ getTSenum <- function(data, depth=NULL, table="df", transpose=FALSE) {
            value, 
            -timeline.incident.year) %>% 
     filter(!is.na(value)) %>% 
-    separate_('enum', 1:depth, "[.]", extra="merge") %>%
+    separate_('enum', as.character(1:depth), "[.]", extra="merge") %>%
     select_('timeline.incident.year', as.name(depth), 'value') %>%
     rename_('enum' = as.name(depth)) %>%
     group_by(timeline.incident.year, enum) %>%
