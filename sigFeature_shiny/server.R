@@ -18,35 +18,36 @@ library(scales)
 source(paste0(veris_scripts, "sigFeature.R"))
 
 ### LOAD FUNCTIONS
-getenumCI <- function(veris, enum, na = NULL, short_names=TRUE, ci.method=c(), ci.level=0.95, ...) {
+getenumCI <- function(veris, enum, na = NULL, short_names=TRUE, ci.method=c(), ci.level=0.95, round_freq=5, ...) {
   library(MultinomialCI)
   library(binom)
   library(stringr)
   
   df <- as.data.frame(veris)
   
-  df <- df[, grepl(paste0("^",enum,"[.][A-Za-z].*$"), names(df))]
-  df <- df[, !grepl(".Unknown$", names(df))]
+  df <- df[, grepl(paste0("^",enum,"[.]*[A-Za-z].*$"), names(df))]
+  if (ncol(df) <= 0) { stop(paste(c("No columns matched feature(s)", enum, collapse=" ")))}
+  df_for_n <- df[, !grepl(".Unknown$", names(df))]
   
   if (is.null(na) & any(grep("[.]NA$", names(df)))) { stop("'na' must be specified if any column names end in .NA")}
   
   if (!is.null(na)) {
     if (na == FALSE) {
-      df <- df[, !grepl(".NA$", names(df)), ]
+      df_for_n <- df_for_n[, !grepl(".NA$", names(df_for_n)), ]
     }
   }
   
   # number of records
-  n <- nrow(df[rowSums(df) > 0, ])
+  n <- sum(rowSums(df_for_n) > 0)
   # count of each enumeration
   v <- colSums(df)  # used instead of a loop or plyr::count to compute x
-  # each enumeration and number or records - the count for use in multinomal Confidence interval
-  chunk <- data.frame(enum=names(v), x=v, n=rep(n, length(v))-v)
   # apply the multinomial confidence interval to the first (correct) value and ignore the 2nd one which is just there to balance it
   # (I know I'm doing each multinomial separately.  Testing showed that changing other rows (other than the sum of x) doesn't change anything)
   # bind enums, x, n, freq, lower and upper confidence intervals
   if ("multinomial" %in% c(ci.method)) {
-    chunk <- data.frame(names(v), v, rep(n, length(x)), v/n, t(apply(chunk, MARGIN=1, function(x) {multinomialCI(as.numeric(x), ci)[1, ] })))
+    # each enumeration and number or records - the count for use in multinomal Confidence interval
+    multiCI_chunk <- data.frame(enum=names(v), x=v, n=rep(n, length(v))-v)
+    chunk <- data.frame(names(v), v, rep(n, length(x)), v/n, t(apply(multiCI_chunk, MARGIN=1, function(x) {multinomialCI(as.numeric(x), ci)[1, ] })))
     #chunk <- bind_cols(chunk, t(apply(chunk, MARGIN=1, function(x) {multinomialCI(as.numeric(x), ci.level)[1, ] })))
     # remove the multinomial method before the next step
     ci.method <- c(ci.method)[which(ci.method=="multinomial")]
@@ -62,13 +63,25 @@ getenumCI <- function(veris, enum, na = NULL, short_names=TRUE, ci.method=c(), c
   # replace row numbers
   rownames(chunk) <- seq(length=nrow(chunk))
   
+  # n is not applicable for Unknown (and potentially na) rows so zero it out
+  chunk[grepl("^(.+[.]|)Unknown$", chunk$enum), c("n", "freq")] <- NA
+  if (!is.null(na)) {
+    if (na == FALSE) {
+      chunk[grepl("^(.+[.]|)NA$", chunk$enum), c("n", "freq")] <- NA
+    }
+  }
+  
   # if short names, only use the bit of the enum name after the last period
   if (short_names) {
     chunk$enum <- str_match(chunk$enum, "[^.]+$")
   }
   
+  if (round_freq>0) {
+    chunk$freq <- round(chunk$freq, round_freq)
+  }
+  
   # return
-  chunk[order(-chunk$x), ]
+  chunk[order(-chunk$freq), ]
 }
 
 setjenum <- function(veris, enums, trim=10, unknowns=c("Unknown", " - Other")) { 
