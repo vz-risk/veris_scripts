@@ -18,16 +18,20 @@ library(scales)
 source(paste0(veris_scripts, "sigFeature.R"))
 
 ### LOAD FUNCTIONS
-getenumCI <- function(veris, enum, na = NULL, short_names=TRUE, ci.method=c(), ci.level=0.95, round_freq=5, ...) {
+getenumCI <- function(veris, enum, na = NULL, unk=FALSE, short_names=TRUE, ci.method=c(), ci.level=0.95, round_freq=5, ...) {
   library(MultinomialCI)
   library(binom)
   library(stringr)
   
   df <- as.data.frame(veris)
   
-  df <- df[, grepl(paste0("^",enum,"[.]*[A-Za-z].*$"), names(df))]
-  if (ncol(df) <= 0) { stop(paste(c("No columns matched feature(s)", enum, collapse=" ")))}
-  df_for_n <- df[, !grepl(".Unknown$", names(df))]
+  df <- df[, grepl(paste0("^",enum,"[.][A-Z0-9][^.]*$"), names(df))]
+  if (ncol(df) <= 0) { stop(paste(c("No columns matched feature(s) ", enum, " using regex ", paste0("^",enum,"[.][A-Z0-9][^.]*$"), collapse=" ")))}
+  if (unk == FALSE) {
+    df_for_n <- df[, !grepl(".Unknown$", names(df))]
+  } else {
+    df_for_n <- df
+  }
   
   if (is.null(na) & any(grep("[.]NA$", names(df)))) { stop("'na' must be specified if any column names end in .NA")}
   
@@ -58,13 +62,11 @@ getenumCI <- function(veris, enum, na = NULL, short_names=TRUE, ci.method=c(), c
   if (length(ci.method) > 0) {
     chunk <- bind_cols(chunk, binom.confint(chunk$x, chunk$n, conf.level=ci.level, methods=ci.method))
   }
-  # name the columns  
-  #names(chunk) <- c("enum", "x", "n", "freq", "lower", "upper")
-  # replace row numbers
-  rownames(chunk) <- seq(length=nrow(chunk))
-  
+
   # n is not applicable for Unknown (and potentially na) rows so zero it out
-  chunk[grepl("^(.+[.]|)Unknown$", chunk$enum), c("n", "freq")] <- NA
+  if (unk == FALSE) {
+    chunk[grepl("^(.+[.]|)Unknown$", chunk$enum), c("n", "freq")] <- NA
+  }
   if (!is.null(na)) {
     if (na == FALSE) {
       chunk[grepl("^(.+[.]|)NA$", chunk$enum), c("n", "freq")] <- NA
@@ -80,8 +82,14 @@ getenumCI <- function(veris, enum, na = NULL, short_names=TRUE, ci.method=c(), c
     chunk$freq <- round(chunk$freq, round_freq)
   }
   
+  # reorder output
+  chunk <- chunk[order(-chunk$freq), ]
+
+  # replace row numbers
+  rownames(chunk) <- seq(length=nrow(chunk))
+  
   # return
-  chunk[order(-chunk$freq), ]
+  chunk
 }
 
 setjenum <- function(veris, enums, trim=10, unknowns=c("Unknown", " - Other")) { 

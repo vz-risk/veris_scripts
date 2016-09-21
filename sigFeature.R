@@ -92,7 +92,7 @@ sigFeatures <- function(df, group_feature) {
       chunk_group_feature <- strsplit(group_feature, "[.](?!.*[.])", perl=T)[[1]][1]
 
       # Get the count of records by group_feature to divide by
-      group_feature_sums <- df %>% select(starts_with(chunk_group_feature)) %>% colSums() %>% as.data.frame() %>% add_rownames()
+      group_feature_sums <- df %>% dplyr::select(starts_with(chunk_group_feature)) %>% colSums() %>% as.data.frame() %>% add_rownames()
       # split the group feature column into key and value (list of vector of 2 as a column)
       group_feature_sums[[1]] <- strsplit(group_feature_sums[[1]], "[.](?!.*[.])", perl=T)
       # keep only the 2nd item and get back to a vector
@@ -102,13 +102,13 @@ sigFeatures <- function(df, group_feature) {
       # This is because those rows could implicitly have any value for this enumeration.
       # NOTE: This should leave any row with the major enumeration.  (e.g. if feature is action.hacking.variety.DoS, all action.*.variety.* should be included)
       # Doing so will cause issues later on in the row duplication block immediately below.
-      group_feature_rows <- df %>% select(starts_with(chunk_group_feature)) %>% apply(MARGIN=1, any)
+      group_feature_rows <- df %>% dplyr::select(starts_with(chunk_group_feature)) %>% apply(MARGIN=1, any)
       #df <- df[group_feature_rows,]  # This line was causing errors and, anyway `df <- df[rep.int(seq(nrow(df)), times=l) ,]` below accomplishes the same thing
 
             
       # get a column to represent the combination of the group_feature function
       # create a feature with a list of the group_feature that are trust
-      df[[chunk_group_feature]] <- df %>% select(starts_with(chunk_group_feature)) %>% apply(MARGIN=1, function(x) {names(x[x==TRUE])})
+      df[[chunk_group_feature]] <- df %>% dplyr::select(starts_with(chunk_group_feature)) %>% apply(MARGIN=1, function(x) {names(x[x==TRUE])})
       # unwind that list to a strait vector of all true features
       group <-unlist(df[[chunk_group_feature]])
       # separate group to only the last section

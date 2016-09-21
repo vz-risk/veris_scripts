@@ -55,11 +55,11 @@ if (nrow(current_df) == 0) {
   }
   
   if ("plus.dbir_year" %in% colnames(df)) {  
-    current_df <- current_df %>% select(-timeline.incident.year, -plus.dbir_year)
-    last_df <- last_df %>% select(-timeline.incident.year, -plus.dbir_year)
+    current_df <- current_df %>% dplyr::select(-timeline.incident.year, -plus.dbir_year)
+    last_df <- last_df %>% dplyr::select(-timeline.incident.year, -plus.dbir_year)
   } else {
-    current_df <- current_df %>% select(-timeline.incident.year)
-    last_df <- last_df %>% select(-timeline.incident.year)
+    current_df <- current_df %>% dplyr::select(-timeline.incident.year)
+    last_df <- last_df %>% dplyr::select(-timeline.incident.year)
     
   }
     
@@ -95,7 +95,7 @@ if (nrow(current_df) == 0) {
   # add the actual enumeration names
   ret <- ret %>% add_rownames(var="Enumeration")
   # Get the counts for each enumeration in the current year
-  df_feature_cnts <- current_df %>% select(one_of(ret$Enumeration)) %>% colSums() %>% melt(value.name = "Count") %>% add_rownames(var="Enumeration")
+  df_feature_cnts <- current_df %>% dplyr::select(dplyr::one_of(ret$Enumeration)) %>% colSums() %>% melt(value.name = "Count") %>% add_rownames(var="Enumeration")
   # Join the counts to the return dataframe
   ret <- full_join(ret, df_feature_cnts, by="Enumeration")
   
