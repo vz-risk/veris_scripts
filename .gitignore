@@ -18,3 +18,4 @@ vignettes/*.pdf
 .Rda
 .rda
 .rdata
+.Rproj.user
